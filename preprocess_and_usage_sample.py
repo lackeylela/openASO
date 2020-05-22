@@ -7,7 +7,7 @@ import argparse
 from sklearn.linear_model import Perceptron
 from sklearn.preprocessing import OneHotEncoder
 import matplotlib.pyplot as plt
-from sklearn.model_selection import cross_validate
+from sklearn.model_selection import train_test_split
 from sklearn.ensemble import GradientBoostingRegressor
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.linear_model import LinearRegression
@@ -60,10 +60,21 @@ def main():
     X = X.replace(np.nan, 0)
     Y = ASO_score_data["score"]
 
-    print(X)
+    X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.2, random_state=0)
+    X_train = X_train.to_numpy()
+    X_test = X_test.to_numpy()
+    Y_train = Y_train.to_numpy()
+    Y_test = Y_test.to_numpy()
 
-    regr = svm.SVR()
-    regr.fit(X, Y)
+    clf = svm.SVR()
+    clf.fit(X_train, Y_train)
+    Y_predicted = clf.predict(X_test)
+
+    for i in range(len(Y_predicted)):
+        print("Predicted Value: " + str(Y_predicted[i]))
+        print("Actual Value: " + str(Y_test[i]))
+        print("-------------------------------------------------")
+
 
 if __name__ == '__main__':
     args = parse_args()
