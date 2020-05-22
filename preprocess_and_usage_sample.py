@@ -5,8 +5,9 @@ import sys
 import argparse
 
 from sklearn.linear_model import Perceptron
-from sklearn.preprocessing import PolynomialFeatures
+from sklearn.preprocessing import OneHotEncoder
 import matplotlib.pyplot as plt
+from sklearn.model_selection import cross_validate
 from sklearn.ensemble import GradientBoostingRegressor
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.linear_model import LinearRegression
@@ -28,68 +29,45 @@ def get_input_file():
         print(err)
         sys.exit(1)
 
+def split(word):
+    return list(word)
+
+def one_hot(nuc_list):
+    one_hot = []
+    for nucelotide in nuc_list:
+        if nucelotide == 'A':
+            one_hot.append([1,0,0,0])
+        elif nucelotide == 'C':
+            one_hot.append([0,1,0,0])
+        elif nucelotide == 'G':
+            one_hot.append([0,0,1,0])
+        elif nucelotide == 'T':
+            one_hot.append([0,0,0,1])
+        else:
+            one_hot.append([0,0,0,0])
+    return one_hot
+
+
 def main():
 
-    test = get_input_file()
-    print(test["ASO"])
-    base2idx = {"A":0, "T":1, "G":2, "C":3, "X":4} #X is padding for varying gene segment length
+    ASO_score_data = get_input_file()
 
-    entry_count = 0
-    max_sequence_len = -1
-    with open(aso_datapath) as datafile:
-        for line in datafile:
-            columns = line.split()
+    # Split ASO string into a list.
+    ASO_score_data["ASO"] = ASO_score_data["ASO"].apply(lambda x: one_hot(split(x)))
+    ASO_score_data["ASO"] = ASO_score_data["ASO"].apply(lambda l: [item for sublist in l for item in sublist])
 
-            effectiveness = columns[-1]
-            sequence = columns[-2]
+    X = pd.DataFrame(ASO_score_data["ASO"].to_list())
+    X = X.replace(np.nan, 0)
+    Y = ASO_score_data["score"]
 
-            curr_sequence_len = len(sequence)
-
-            entry_count += 1
-            max_sequence_len = curr_sequence_len if curr_sequence_len > max_sequence_len else max_sequence_len
-
-
-    X = np.zeros(shape=(entry_count, max_sequence_len*5))
-    Y = np.zeros(shape=(entry_count, ))
-
-    with open(aso_datapath) as datafile:
-        for i, line in enumerate(datafile):
-            columns = line.split()
-
-            effectiveness = columns[-1]
-            sequence = columns[-2]
-
-            curr_sequence_len = len(sequence)
-
-            if curr_sequence_len < max_sequence_len:
-                padding_count = max_sequence_len - curr_sequence_len
-                sequence += "X" * padding_count # append X to end to achieve uniform length
-
-            one_hot_sequence = np.zeros(shape=(5, max_sequence_len), dtype=np.int32)
-            for j, base in enumerate(sequence):
-                one_hot_sequence[base2idx[base], j] = 1
-
-            input_features = one_hot_sequence.flatten()
-            output = effectiveness
-
-            X[i, :] = input_features
-            Y[i] = effectiveness
+    print(X)
 
     regr = svm.SVR()
     regr.fit(X, Y)
-
-    abs_error_sum = 0
-    for sample_id in range(entry_count):
-        x = X[sample_id, :].reshape(1, -1)
-        res = regr.predict(x)[0]
-
-        abs_error_sum += abs(res - Y[sample_id])
-
-    print(f"SVR avg error is {abs_error_sum/entry_count}")
 
 if __name__ == '__main__':
     args = parse_args()
     if args.input:
         main()
     else:
-        print("Enter input file with --i")
+        print("Enter input file")
