@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 from sklearn import svm
+import sys
 import argparse
 
 from sklearn.linear_model import Perceptron
@@ -18,17 +19,19 @@ def parse_args():
     args = parser.parse_args()
     return args
 
-def one_hot_encoding():
-    print("TODO")
-
-def main():
+def get_input_file():
     try:
-        aso_datapath = args.input.name
+        ASO_file = pd.read_csv(args.input.name, delimiter="\t")
+        return(ASO_file)
     except Exception as err:
         print("Error opening file.")
         print(err)
         sys.exit(1)
 
+def main():
+
+    test = get_input_file()
+    print(test["ASO"])
     base2idx = {"A":0, "T":1, "G":2, "C":3, "X":4} #X is padding for varying gene segment length
 
     entry_count = 0
