@@ -12,6 +12,8 @@ from sklearn.ensemble import GradientBoostingRegressor
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.linear_model import LinearRegression
 from sklearn.ensemble import VotingRegressor
+from ml_models.conv_net import OneDConvNet
+
 
 def parse_args():
     parser = argparse.ArgumentParser(description = "Run regression on tab file")
@@ -66,15 +68,22 @@ def main():
     Y_train = Y_train.to_numpy()
     Y_test = Y_test.to_numpy()
 
+    # Conv net sample code
+    one_d_convnet = OneDConvNet()
+    trained_model = one_d_convnet.fit(X_train, X_test, Y_train, Y_test, epochs=1, batch_size=32)
+
     clf = svm.SVR()
     clf.fit(X_train, Y_train)
     Y_predicted = clf.predict(X_test)
+
+    mse = np.mean(np.square(Y_predicted - Y_test))
 
     for i in range(len(Y_predicted)):
         print("Predicted Value: " + str(Y_predicted[i]))
         print("Actual Value: " + str(Y_test[i]))
         print("-------------------------------------------------")
 
+    print("Mean Squared Error: " + str(mse))
 
 if __name__ == '__main__':
     args = parse_args()
