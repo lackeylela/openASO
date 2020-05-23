@@ -10,7 +10,7 @@ from sklearn.ensemble import RandomForestRegressor
 from sklearn.linear_model import LinearRegression
 from sklearn.ensemble import VotingRegressor
 
-tmp = pd.read_csv("../Processed_IDT_ASO_Data", delimiter="\t")
+tmp = pd.read_csv("../example_data/Processed_IDT_ASO_Data", delimiter="\t")
 print(tmp)
 
 X, y = load_diabetes(return_X_y=True)
