@@ -1,6 +1,6 @@
 # openASO
 
-## Design effective antisense oligonucleotides
+**Design effective antisense oligonucleotides**
 
 Can machine learning be used to identify aspects of RNA targets that make antisense oligonucleotide (ASOs) more effective? This project seeks to develop datasets and tools to understand important features of effective ASO targets to improve ASO design for experimental and clinical applications!
 
@@ -16,17 +16,14 @@ Axel Hauduc, Ivan Jimenez, Jayashree Kumar, and Kimberly Wellman were members of
 
 **Machine Learning**
 
-Shawn Hsueh, Alex Sweeten and Tony worked on the machine learning algorithm. They used sci-kit learn to develop a SVM Regression algorithm. This will be used on the final dataset including target RNA secondary structure, RNA-binding protein occupancy, and SNP variation.
+Shawn Hsueh, Alex Sweeten and Tony were members of the machine learning team of openASO. THey worked on the machine learning algorithm. They used sci-kit learn to develop a SVM Regression algorithm. This will be used on the final dataset including target RNA secondary structure, RNA-binding protein occupancy, and SNP variation.
 
 **Visualization**
-Sophia Shen, Owen Tsai, Helena Catena Sánchez and Kelly Wei made an interactive R Shiny table, where you can load the ASO data in tsv format and visualize it. There is an interactive table where you can select and filter by table attributes. We plan to expand this and show a representation of each transcript and where the different ASO bind and their features.
+
+Sophia Shen, Owen Tsai, Helena Catena Sánchez and Kelly Wei were members of the visualization team of openASO. They made an interactive R Shiny table, where you can load the ASO data in tsv format and visualize it. There is an interactive table where you can select and filter by table attributes. We plan to expand this and show a representation of each transcript and where the different ASO bind and their features.
 
 
-
-
-
-
-Data sources:
+# Data sources:
 
 [ENCODE – eCLIP data](https://www.encodeproject.org/eclip/)
 
@@ -34,6 +31,6 @@ Data sources:
 
 [REDIportal – A-to-I editing sites](http://srv00.recas.ba.infn.it/atlas/)
 
-
+[Genomic variation](https://www.ncbi.nlm.nih.gov/snp/)
 
 McQuisten KA, Peek AS. Identification of sequence motifs significantly associated with antisense activity. BMC Bioinformatics. 2007;8:184. doi:10.1186/1471-2105-8-184 [PubMed](https://www.ncbi.nlm.nih.gov/pubmed/17555590)
