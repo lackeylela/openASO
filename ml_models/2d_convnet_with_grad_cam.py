@@ -24,6 +24,14 @@ def to_one_hot(sequence, base2idx, max_sequence_len):
     return one_hot_position
 
 
+def to_channel(sequence, base2idx, max_sequence_len):
+    to_channel_position = np.zeros(shape=(1, max_sequence_len, 4), dtype=np.int32)
+    for position, base in enumerate(sequence):
+        to_channel_position[0, position, base2idx[base]] = 1
+
+    return to_channel_position
+
+
 def get_input_file():
     """ Create X numpy array of shape=(# of samples, 4, length of sequence) and
     Y numpy array of shape=(# of samples,) from the text input.
@@ -39,7 +47,7 @@ def get_input_file():
 
         #TODO
         # Change one hot encoding into depth 4 instead
-        X = np.zeros(shape=(entry_count, 4, max_sequence_len)) # 4 bases
+        X = np.zeros(shape=(entry_count, 1, max_sequence_len, 4)) # 4 bases
         Y = np.zeros(shape=(entry_count, ))
 
         for index, line in enumerate(lines):
@@ -48,9 +56,10 @@ def get_input_file():
             sequence = columns[-2]
             effectiveness = columns[-1]
 
-            one_hot_position = to_one_hot(sequence, base2idx, max_sequence_len)
+            # one_hot_position = to_one_hot(sequence, base2idx, max_sequence_len)
+            to_channel_position = to_channel(sequence, base2idx, max_sequence_len)
 
-            X[index, :] = one_hot_position
+            X[index, :] = to_channel_position
             Y[index] = effectiveness
 
         return X, Y
@@ -83,8 +92,7 @@ def make_gradcam_heatmap(
         #TODO:
         # CHANGE THIS INTO REGRESSION
         preds = classifier_model(last_conv_layer_output)
-        top_pred_index = tf.argmax(preds[0])
-        top_class_channel = preds[:, top_pred_index]
+        top_class_channel = preds[:, 0]
 
     # This is the gradient of the top predicted class with regard to
     # the output feature map of the last conv layer
@@ -116,8 +124,8 @@ def main():
     X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.2)
 
     # Add a depth (channel) dimension
-    X_train =  np.expand_dims(X_train, axis=-1)
-    X_test =  np.expand_dims(X_test, axis=-1)
+    # X_train =  np.expand_dims(X_train, axis=-1)
+    # X_test =  np.expand_dims(X_test, axis=-1)
 
     #This is what a example image conversion looks like
     # plt.figure()
@@ -127,9 +135,9 @@ def main():
     shape = X_train[0].shape
 
     inputs = keras.Input(shape=shape)
-    x = keras.layers.Conv2D(3, kernel_size=(4, 2), padding='same', name="conv1")(inputs)
-    x = keras.layers.Conv2D(5, kernel_size=(1, 1), padding="same", name="conv2")(x)
-    x = keras.layers.MaxPooling2D(pool_size=(2, 2), name="max_pool")(x)
+    x = keras.layers.Conv2D(3, kernel_size=(1, 3), padding='same', name="conv1")(inputs)
+    x = keras.layers.Conv2D(5, kernel_size=(1, 3), padding="same", name="conv2")(x)
+    # x = keras.layers.MaxPooling2D(pool_size=(2, 2), name="max_pool")(x)
     x = keras.layers.Flatten(name="flatten")(x)
     x = keras.layers.Dense(32, activation='relu', name="dense1")(x)
     outputs = keras.layers.Dense(1, activation="sigmoid", name="dense2")(x)
@@ -150,7 +158,7 @@ def main():
 
     last_conv_layer_name = "conv2"
     classifier_layer_names = [
-        "max_pool",
+        # "max_pool",
         # "dropout1",
         "flatten",
         "dense1",
