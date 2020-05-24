@@ -16,7 +16,7 @@ Axel Hauduc, Ivan Jimenez, Jayashree Kumar, and Kimberly Wellman were members of
 
 **Machine Learning**
 
-Shawn Hsueh, Alex Sweeten and Tony were members of the machine learning team of openASO. THey worked on the machine learning algorithm. They used sci-kit learn to develop a SVM Regression algorithm. This will be used on the final dataset including target RNA secondary structure, RNA-binding protein occupancy, and SNP variation.
+Shawn Hsueh, Alex Sweeten and Tony Shen were members of the machine learning team of openASO. THey worked on the machine learning algorithm. They used sci-kit learn to develop a SVM Regression algorithm. This will be used on the final dataset including target RNA secondary structure, RNA-binding protein occupancy, and SNP variation.
 
 **Visualization**
 
