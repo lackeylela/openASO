@@ -3,9 +3,7 @@ We want to identify the location of ASOs based on sequence within a transcript a
 Our initial script (spear-headed by Kim) is 20200523_openASO_position.Rmd
 It takes "Complete_ASOtoTranscriptSeq.tsv" as input, which is a combination of Processed_IDT_ASO_Data, hgnc-symbol-check-manual-additions-3.tsv and result.txt. The R commands used to generate this file are below. 
 
-We need to try to run the current code and 1. confirm that we get accurate positioning of the ASO on each transcript, 2. confirm that the transcriptome coordinates can be converted into genomic coordinates, 3. compare behavior for regions that cross exon-intron boundaries (ideally like to split these into two smaller regions that correspond to the exonic sequence).
-
->>>>>>>>>>>>>
+```
 library(seqinr)
 library(dplyr)
 
@@ -24,3 +22,4 @@ SequenceWithASO <- merge(Combo, output, by.x = "Approved.symbol", by.y = "hg38.k
   select(GeneID = Approved.symbol, OriginalName = GeneID, ASOseq, ASOeffective, HGNC.ID, hg38.knownGene.name, Sequence)
 
 #write.table(SequenceWithASO, file = "Complete_ASOtoTranscriptSeq.tsv", quote = FALSE, row.names = FALSE)
+```
