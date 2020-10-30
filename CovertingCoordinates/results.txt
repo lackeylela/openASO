@@ -1,0 +1,82 @@
+HGNC ID	Status	Approved symbol	Approved name
+HGNC:10020	Approved	RIPK2	receptor interacting serine/threonine kinase 2
+HGNC:10718	Approved	SELE	selectin E
+HGNC:11281	Approved	SRA1	steroid receptor RNA activator 1
+HGNC:11283	Approved	SRC	SRC proto-oncogene, non-receptor tyrosine kinase
+HGNC:11728	Approved	TERF1	telomeric repeat binding factor 1
+HGNC:11763	Approved	TFRC	transferrin receptor
+HGNC:11916	Approved	TNFRSF1A	TNF receptor superfamily member 1A
+HGNC:12030	Approved	TRADD	TNFRSF1A associated via death domain
+HGNC:12663	Approved	VCAM1	vascular cell adhesion molecule 1
+HGNC:16627	Approved	CHEK2	checkpoint kinase 2
+HGNC:1681	Approved	CD44	CD44 molecule (Indian blood group)
+HGNC:17004	Approved	WWP1	WW domain containing E3 ubiquitin protein ligase 1
+HGNC:17927	Approved	SENP1	SUMO specific peptidase 1
+HGNC:1974	Approved	CHUK	component of inhibitor of nuclear factor kappa B kinase complex
+HGNC:2514	Approved	CTNNB1	catenin beta 1
+HGNC:30238	Approved	WLS	Wnt ligand secretion mediator
+HGNC:30322	Approved	ARHGEF28	Rho guanine nucleotide exchange factor 28
+HGNC:3074	Approved	DUSP8	dual specificity phosphatase 8
+HGNC:3076	Approved	DUSP9	dual specificity phosphatase 9
+HGNC:3113	Approved	E2F1	E2F transcription factor 1
+HGNC:3238	Approved	EGR1	early growth response 1
+HGNC:333	Approved	AGT	angiotensinogen
+HGNC:3430	Approved	ERBB2	erb-b2 receptor tyrosine kinase 2
+HGNC:3489	Approved	ETS2	ETS proto-oncogene 2, transcription factor
+HGNC:3573	Approved	FADD	Fas associated via death domain
+HGNC:3697	Approved	FGR	FGR proto-oncogene, Src family tyrosine kinase
+HGNC:391	Approved	AKT1	AKT serine/threonine kinase 1
+HGNC:392	Approved	AKT2	AKT serine/threonine kinase 2
+HGNC:393	Approved	AKT3	AKT serine/threonine kinase 3
+HGNC:40	Approved	ABCB1	ATP binding cassette subfamily B member 1
+HGNC:4162	Approved	GARS1	glycyl-tRNA synthetase 1
+HGNC:4379	Approved	GNA11	G protein subunit alpha 11
+HGNC:4380	Approved	GNA12	G protein subunit alpha 12
+HGNC:4381	Approved	GNA13	G protein subunit alpha 13
+HGNC:4385	Approved	GNAI2	G protein subunit alpha i2
+HGNC:4387	Approved	GNAI3	G protein subunit alpha i3
+HGNC:51	Approved	ABCC1	ATP binding cassette subfamily C member 1
+HGNC:5176	Approved	KRR1	KRR1 small subunit processome component homolog
+HGNC:590	Approved	BIRC2	baculoviral IAP repeat containing 2
+HGNC:591	Approved	BIRC3	baculoviral IAP repeat containing 3
+HGNC:592	Approved	XIAP	X-linked inhibitor of apoptosis
+HGNC:593	Approved	BIRC5	baculoviral IAP repeat containing 5
+HGNC:5960	Approved	IKBKB	inhibitor of nuclear factor kappa B kinase subunit beta
+HGNC:5977	Approved	IL15	interleukin 15
+HGNC:6080	Approved	INPPL1	inositol polyphosphate phosphatase like 1
+HGNC:6156	Approved	ITGB3	integrin subunit beta 3
+HGNC:668	Approved	RHOB	ras homolog family member B
+HGNC:669	Approved	RHOC	ras homolog family member C
+HGNC:672	Approved	RHOG	ras homolog family member G
+HGNC:6767	Approved	SMAD1	SMAD family member 1
+HGNC:6768	Approved	SMAD2	SMAD family member 2
+HGNC:6769	Approved	SMAD3	SMAD family member 3
+HGNC:6770	Approved	SMAD4	SMAD family member 4
+HGNC:6772	Approved	SMAD6	SMAD family member 6
+HGNC:6773	Approved	SMAD7	SMAD family member 7
+HGNC:6774	Approved	SMAD9	SMAD family member 9
+HGNC:6840	Approved	MAP2K1	mitogen-activated protein kinase kinase 1
+HGNC:6842	Approved	MAP2K2	mitogen-activated protein kinase kinase 2
+HGNC:6846	Approved	MAP2K6	mitogen-activated protein kinase kinase 6
+HGNC:6848	Approved	MAP3K1	mitogen-activated protein kinase kinase kinase 1
+HGNC:6857	Approved	MAP3K5	mitogen-activated protein kinase kinase kinase 5
+HGNC:6866	Approved	MAP4K4	mitogen-activated protein kinase kinase kinase kinase 4
+HGNC:6881	Approved	MAPK8	mitogen-activated protein kinase 8
+HGNC:6886	Approved	MAPK9	mitogen-activated protein kinase 9
+HGNC:8017	Approved	NSMAF	neutral sphingomyelinase activation associated factor
+HGNC:8725	Approved	PCK2	phosphoenolpyruvate carboxykinase 2, mitochondrial
+HGNC:8809	Approved	PDK1	pyruvate dehydrogenase kinase 1
+HGNC:8976	Approved	PIK3CB	phosphatidylinositol-4,5-bisphosphate 3-kinase catalytic subunit beta
+HGNC:8977	Approved	PIK3CD	phosphatidylinositol-4,5-bisphosphate 3-kinase catalytic subunit delta
+HGNC:8979	Approved	PIK3R1	phosphoinositide-3-kinase regulatory subunit 1
+HGNC:9035	Approved	PLA2G4A	phospholipase A2 group IVA
+HGNC:9380	Approved	PRKACA	protein kinase cAMP-activated catalytic subunit alpha
+HGNC:9391	Approved	PRKAR2A	protein kinase cAMP-dependent type II regulatory subunit alpha
+HGNC:9393	Approved	PRKCA	protein kinase C alpha
+HGNC:9588	Approved	PTEN	phosphatase and tensin homolog
+HGNC:9644	Approved	PTPN11	protein tyrosine phosphatase non-receptor type 11
+HGNC:9658	Approved	PTPN6	protein tyrosine phosphatase non-receptor type 6
+HGNC:9725	Approved	PYGL	glycogen phosphorylase L
+HGNC:9829	Approved	RAF1	Raf-1 proto-oncogene, serine/threonine kinase
+HGNC:9954	Approved	REL	REL proto-oncogene, NF-kB subunit
+HGNC:9955	Approved	RELA	RELA proto-oncogene, NF-kB subunit
