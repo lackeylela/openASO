@@ -1,0 +1,1 @@
+We want to identify the location of ASOs based on sequence within a transcript and covert these numbers to genomic coordinates. We also want to identify elements from external datasources in genomic coordinates and convert these to transcript coordinates.
