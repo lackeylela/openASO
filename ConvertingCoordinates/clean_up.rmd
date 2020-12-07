@@ -1,0 +1,121 @@
+---
+title: "R Notebook"
+author: james
+date: 11/29/2020
+output: html_notebook
+---
+
+### Bring in libraries
+
+```{r setup, warning = FALSE}
+
+# clear the global environment.
+rm(list=ls())
+
+# get packages.
+suppressMessages(library(tidyverse))
+library(readr)
+library(Biostrings)
+library(splitstackshape)
+library(ensembldb)
+library(EnsDb.Hsapiens.v86)
+library(insect)
+
+# connect to ensembl
+dbfile <- system.file("extdata/EnsDb.Hsapiens.v86.sqlite", package = "EnsDb.Hsapiens.v86")
+db <- EnsDb(dbfile)
+dna <- ensembldb::getGenomeTwoBitFile(db)
+
+```
+
+
+### Bring in tsv
+
+```{r import, echo = TRUE, warning = FALSE}
+
+# genseq_byaso <- read.csv("~/Initial_df_Transcripts_KW.csv", stringsAsFactors = FALSE)
+genseq_byaso <- read.csv("ConvertingCoordinates/Complete_ASOtoTranscriptSeq.tsv", sep="", stringsAsFactors=FALSE)
+```
+
+
+### Isolate unique genes and search for protein coding transcripts
+
+```{r}
+
+# create a unique list of genes
+unique_genes <- unique(genseq_byaso$GeneID)
+
+# initiate empty dataframe
+masterdf <- data.frame()
+
+# loop through each gene to access all protein coding transcripts
+for (gene in unique_genes){
+  geneflt <- AnnotationFilter(~ gene_name==gene & tx_biotype == "protein_coding")
+  txByGn <- transcriptsBy(db, by='gene', filter=geneflt)
+  genedf <- data.frame(txByGn)
+  masterdf <- rbind(masterdf, genedf)
+}
+```
+
+
+### Obtain cdna and cds for each transcript id
+
+```{r warning = False}
+
+# set up empty rows in dataframe
+masterdf$cdna <- NA
+masterdf$cds <- NA
+masterdf$start_codon_location <- NA
+
+# loop through each transcript in table and pull info
+for (transcript in masterdf$tx_id){
+
+  # try catch to capture any errors in unavailable scripts
+  tryCatch({
+
+    # set up filter for specified transcript
+    txflt <- AnnotationFilter(~ tx_id == transcript)
+
+    # extract the whole transcript sequence for the specified transcript above
+    cdna <- extractTranscriptSeqs(dna, db, filter=txflt)
+    cdna <- toString(cdna)
+
+    # extract the cds ( coding region only ) for the specified transcript above
+    cds <- cdsBy(db, filter=txflt)
+    cds <- extractTranscriptSeqs(dna, cds)
+    cds <- toString(cds)
+
+    # find where the cds portion of transcript starts within cdna
+    start_codon_location <- as.data.frame(str_locate(cdna, cds))[1, 1]
+
+    # add to dataframe
+    masterdf[masterdf$tx_id == transcript, ]$cdna <- cdna
+    masterdf[masterdf$tx_id == transcript, ]$cds <- cds
+    masterdf[masterdf$tx_id == transcript, ]$start_codon_location <- start_codon_location
+
+  }, error=function(e){})
+
+}
+
+```
+
+
+
+### Isolate each ASO by gene/tx
+
+
+
+
+
+### Find coords of ASO in each transcript
+
+
+
+
+
+### Map coords to genome and identify exon-exon ASOs
+
+
+
+
+### Identify UTR ASOs

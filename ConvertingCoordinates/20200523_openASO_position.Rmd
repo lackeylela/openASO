@@ -1,0 +1,109 @@
+---
+title: "20200522_openASO_position"
+author: "Kim Wellman"
+date: "05/22/2020"
+output:
+  html_document: 
+    code_folding: hide
+---
+
+### Purpose
+This script takes a pre-processed data frame of gene ID, gene sequence, and the reverse compliment of the ASO sequence and maps start/stop positions of the ASO using transcriptomic coordinates that are then converted to genomic coordinates. The output of this script should be in BED file format.
+
+### Setup
+
+```{r setup, warning = FALSE}
+
+# clear the global environment. 
+rm(list=ls())
+
+# get packages. 
+suppressMessages(library(tidyverse))
+library(readr)
+library(Biostrings)
+library(splitstackshape)
+library(ensembldb)
+library(EnsDb.Hsapiens.v86)
+library(insect)
+
+```
+
+### Data input: pre-processed data from Ivan and Axel
+
+This is currently a dummy file.
+
+```{r import, echo = TRUE, warning = FALSE}
+
+# genseq_byaso <- read.csv("~/Initial_df_Transcripts_KW.csv", stringsAsFactors = FALSE)
+genseq_byaso <- read.csv("ConvertingCoordinates/Complete_ASOtoTranscriptSeq.tsv", sep="", stringsAsFactors=FALSE)
+
+# generate the reverse complement of the ASOs.
+genseq_byaso$aso_rc_seq <- rc(genseq_byaso$ASOseq)
+
+# confirm geneID of isoform to transcript_id
+genseq_byaso$transcript_id <- gsub("\\..*","",genseq_byaso$hg38.knownGene.name)
+
+```
+
+### Map the transcriptomic coordinates
+
+These coordinates are relative to the first nucleotide of the transcript (not the CDS) in order to be compatible with the 'transcriptToGenome' ensembldb functionality.
+
+```{r transcriptomic coordinates, warning = FALSE}
+
+# loop through each row to look for where each ASO sequence is located along the target transcript sequence. The'start' and 'end' positions are in relation to the start of the transcript and also represent character position within each transcript sequence string. 
+
+aso_txt_pos <- genseq_byaso
+aso_txt_pos$start <- NA
+aso_txt_pos$end <- NA
+
+for(i in 1:dim(aso_txt_pos)[1]){
+  string <- genseq_byaso[i, "Sequence"]
+  pattern <- genseq_byaso[i, "aso_rc_seq"]
+  coord <- as.data.frame(str_locate(string, pattern))
+  aso_txt_pos[i, "start"] <- coord[1, "start"]
+  aso_txt_pos[i, "end"] <- coord[1, "end"]
+}
+
+aso_txt_pos <- na.omit(aso_txt_pos, cols = "start")
+
+# Do we expect any ASO to hit the same gene more than once? We may want to use str_locate_all()...
+
+```
+
+### Convert the transcriptomic coordinates into genomic coordinates
+
+
+```{r genomic coordinates, warning = FALSE}
+
+# convert the transcript position information into an IRanges format. 
+# ir <- IRanges(start = aso_txt_pos$start, end = aso_txt_pos$end, width = (aso_txt_pos$end - aso_txt_pos$start + 1), names = aso_txt_pos$transcript_id)
+
+ir <- IRanges(start = aso_txt_pos$start, width = (aso_txt_pos$end - aso_txt_pos$start + 1), names = aso_txt_pos$transcript_id)
+
+# create an EnsDB object containing genomic position information.
+dbfile <- system.file("extdata/EnsDb.Hsapiens.v86.sqlite", package = "EnsDb.Hsapiens.v86")
+db <- EnsDb(dbfile)
+
+gr <- transcriptToGenome(ir, db)
+
+# to convert the GRanges list to a GRanges object.
+# gr <- unlist(gr)
+```
+
+```{r GRanges to BED format, warning = FALSE}
+
+gnm_df <- data.frame(loci = seqnames(gr), 
+  starts = start(gr) - 1,
+  ends = end(gr)) %>%
+  dplyr::select(loci.group_name, loci.value, starts.value, ends.value)
+
+final_df <- full_join(aso_txt_pos, gnm_df, by = c('transcript_id' = 'loci.group_name'))
+
+write.csv(final_df, file = "openASO_gr.bed", quote = F, sep = "\t", row.names = F, col.names = F)
+```
+
+```{r}
+sessionInfo()
+
+```

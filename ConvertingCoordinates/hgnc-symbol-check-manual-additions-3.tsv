@@ -1,0 +1,113 @@
+﻿Input	Match type	Approved symbol	Approved name	HGNC ID	Location	Status (probable = manually searched HGNC code)	Notes
+Akt-1	Unmatched			HGNC:391		Probable	
+Akt-2	Unmatched			HGNC:392		Probable	
+Akt-3	Unmatched			HGNC:393		Probable	
+angiotensin	Unmatched			HGNC:333		Probable	
+Betacatenin	Unmatched			HGNC:2514		Probable	
+CD44	Approved symbol	CD44	CD44 molecule (Indian blood group)	HGNC:1681	11p13	Autofilled	
+CD71	Alias symbol	TFRC	transferrin receptor	HGNC:11763	3q29	Autofilled	
+CHK2	Alias symbol	CHEK2	checkpoint kinase 2	HGNC:16627	22q12.1	Autofilled	
+C-RAF	Alias symbol	RAF1	"Raf-1 proto-oncogene	 serine/threonine kinase"	HGNC:9829	3p25.2	Autofilled	
+cREL	Unmatched			HGNC:9954		Probable	
+Dualspecificphosphatase8	Unmatched			HGNC:3074		Probable	
+Dualspecificphosphatase9	Unmatched			HGNC:3076		Probable	
+E2Ftranscriptionfactor1	Unmatched			HGNC:3113		Probable	
+EGR-1	Unmatched			HGNC:3238		Probable	
+ELAM-1	Unmatched			HGNC:10718		Probable	
+ELAM-1AELAMA-1A	Unmatched					???	"<- Similar names with repeats	 not sure how to handle	 will consult literature"
+ELAM-1AELAMA-1AELAM-1	Unmatched					???	
+ELAM-1ELAMA-1AELAM-1A	Unmatched					???	
+ELAMA-1AELAM-1	Unmatched					???	
+ELAMA-1AELAM-1A	Unmatched					???	
+ELAMA-1AELAM-1AELAM-1	Unmatched					???	
+ELAMA-1AELAM-1ASELE	Unmatched					???	
+ELAMA-1AELAM-1ELAM-1A	Unmatched					???	
+ELAMA-1AELAMA-1AELAM-1SELE	Unmatched					???	
+ELAMA-1ASELEELAM-1A	Unmatched					???	
+ETs-2	Unmatched			HGNC:3489		Probable	
+FADD	Approved symbol	FADD	Fas associated via death domain	HGNC:3573	11q13.3	Autofilled	
+FAN	Alias symbol	NSMAF	neutral sphingomyelinase activation associated factor	HGNC:8017	8q12.1	Autofilled	
+G-alpha-11	Unmatched			HGNC:4379		Probable	
+G-alpha-12	Unmatched			HGNC:4380		Probable	
+G-alpha-13	Unmatched			HGNC:4381		Probable	
+G-alpha-i1	Unmatched			HGNC:4379		Probable	
+G-alpha-i2	Unmatched			HGNC:4385		Probable	
+G-alpha-i3	Unmatched			HGNC:4387		Probable	
+G-alpha-S1	Unmatched					???	
+Her-2	Alias symbol	ERBB2	erb-b2 receptor tyrosine kinase 2	HGNC:3430	17q12	Autofilled	
+HPK/GCK-likekinase	Unmatched			HGNC:6866		Probable	
+HSICAM1-ex1	Unmatched					???	"<- Similar names with repeats	 not sure how to handle	 will consult literature"
+HSICAM1-ex1ICAM-1ICAMA-1M	Unmatched					???	<- Can find ICAM but not HSICAM
+HSICAM1-ex1ICAMA-1MICAM-1	Unmatched					???	
+HUMELAM-ex4	Unmatched					???	
+ICAM-1HSICAM1-ex1ICAMA-1M	Unmatched					???	
+ICAM-1ICAMA-1M	Unmatched					???	
+ICAM-1ICAMA-1MHSICAM1-ex1	Unmatched					???	
+ICAMA-1M	Unmatched					???	
+ICAMA-1MHSICAM1-ex1ICAM-1	Unmatched					???	
+ICAMA-1MICAM-1	Unmatched					???	
+ICAMA-1MICAM-1HSICAM1-ex1	Unmatched					???	
+IL-1HIL-11B&1C	Unmatched					???	<- not sure how to deal with suffixed text in these
+IL-1RIpromoter	Unmatched					???	
+IL-1RIpromoterHIL-11B&1C	Unmatched					???	
+Inhibitor-kappaBKinase-alpha	Unmatched			HGNC:1974		Probable	
+Inhibitor-kappaBKinase-beta	Unmatched			HGNC:5960		Probable	
+InhibitorofApoptosis-1	Unmatched			HGNC:591		Probable	
+InhibitorofApoptosis-2	Unmatched			HGNC:590		Probable	
+integrinbeta3	Unmatched			HGNC:6156		Probable	
+Interleukin-15	Unmatched			HGNC:5977		Probable	
+JunN-terminalKinaseKinase-1	Unmatched			HGNC:6881		Probable	
+JunN-terminalKinaseKinase-2	Unmatched			HGNC:6886		Probable	
+liverglycogenphosphorylase	Unmatched			HGNC:9725		Probable	
+MADH6	Previous symbol	SMAD6	SMAD family member 6	HGNC:6772	15q22.31	Autofilled	
+MADH6	Previous symbol	SMAD9	SMAD family member 9	HGNC:6774	13q13.3	Autofilled	
+MAPkinasekinase6	Unmatched			HGNC:6846		Probable	
+MEK1	Alias symbol	MAP2K1	mitogen-activated protein kinase kinase 1	HGNC:6840	15q22.31	Autofilled	
+MEK2	Alias symbol	MAP2K2	mitogen-activated protein kinase kinase 2	HGNC:6842	19p13.3	Autofilled	
+MEKK1	Previous symbol	MAP3K1	mitogen-activated protein kinase kinase kinase 1	HGNC:6848	5q11.2	Autofilled	
+MEKK5	Previous symbol	MAP3K5	mitogen-activated protein kinase kinase kinase 5	HGNC:6857	6q23.3	Autofilled	
+MGFIIEG-mRNA	Unmatched					???	
+MICAM-1	Unmatched					???	
+MICAM-16	Unmatched					???	
+MRP	Alias symbol	WLS	Wnt ligand secretion mediator	HGNC:30238	1p31.3	Autofilled	
+MRP	Previous symbol	ABCC1	ATP binding cassette subfamily C member 1	HGNC:51	16p13.11	Autofilled	
+NF-kappa-Bp65subunit	Unmatched			HGNC:9955		Probable	
+PDK-1	Unmatched			HGNC:8809		Probable	
+PEPCK	Alias symbol	PCK2	"phosphoenolpyruvate carboxykinase 2	 mitochondrial"	HGNC:8725	14q11.2-q12	Autofilled	
+PGY1	Previous symbol	ABCB1	ATP binding cassette subfamily B member 1	HGNC:40	7q21.12	Autofilled	
+PhospholipaseA2GroupIV	Unmatched			HGNC:9035		Probable	
+PI3kinasep110beta	Unmatched			HGNC:8976		Probable	
+PI3kinasep110delta	Unmatched			HGNC:8977		Probable	
+PI3Kp85	Unmatched			HGNC:8979		Probable	
+PKAcatalyticsubunitC-alpha	Unmatched			HGNC:9380		Probable	
+PKAregulatorysubunitRIIalpha	Unmatched			HGNC:9391		Probable	
+PKC-alpha	Unmatched			HGNC:9393		Probable	
+PTEN	Approved symbol	PTEN	phosphatase and tensin homolog	HGNC:9588	10q23.31	Autofilled	
+RatTNF-alpha	Unmatched					???	"TNF-alpha exists but not sure what to make of ""Rat"""
+RhoB	Approved symbol	RHOB	ras homolog family member B	HGNC:668	2p24.1	Autofilled	
+RhoC	Approved symbol	RHOC	ras homolog family member C	HGNC:669	1p13.2	Autofilled	
+RhoG	Approved symbol	RHOG	ras homolog family member G	HGNC:672	11p15.4	Autofilled	
+RIP-1	Alias symbol	KRR1	KRR1 small subunit processome component homolog	HGNC:5176	12q21.2	Autofilled	
+RIP2	Alias symbol	RIPK2	receptor interacting serine/threonine kinase 2	HGNC:10020	8q21.3	Autofilled	
+RIP2	Alias symbol	ARHGEF28	Rho guanine nucleotide exchange factor 28	HGNC:30322	5q13.2	Autofilled	
+Sentrin	Unmatched			HGNC:17927		Probable	
+Ship-2	Unmatched			HGNC:6080		Probable	
+SHP-1	Alias symbol	PTPN6	protein tyrosine phosphatase non-receptor type 6	HGNC:9658	12p13.31	Autofilled	
+SHP-2	Alias symbol	PTPN11	protein tyrosine phosphatase non-receptor type 11	HGNC:9644	12q24.13	Autofilled	
+Smad1	Alias symbol	GARS1	glycyl-tRNA synthetase 1	HGNC:4162	7p14.3	Autofilled	
+Smad1	Approved symbol	SMAD1	SMAD family member 1	HGNC:6767	4q31.21	Autofilled	
+Smad2	Approved symbol	SMAD2	SMAD family member 2	HGNC:6768	18q21.1	Autofilled	
+Smad3	Approved symbol	SMAD3	SMAD family member 3	HGNC:6769	15q22.33	Autofilled	
+Smad4	Approved symbol	SMAD4	SMAD family member 4	HGNC:6770	18q21.2	Autofilled	
+Smad6	Approved symbol	SMAD6	SMAD family member 6	HGNC:6772	15q22.31	Autofilled	
+Smad7	Approved symbol	SMAD7	SMAD family member 7	HGNC:6773	18q21.1	Autofilled	
+SRA	Alias symbol	SRA1	steroid receptor RNA activator 1	HGNC:11281	5q31.3	Autofilled	
+SRC-1	Unmatched			HGNC:11283		Probable	
+SRC-2	Unmatched			HGNC:3697		Probable	
+Survivin	Alias symbol	BIRC5	baculoviral IAP repeat containing 5	HGNC:593	17q25.3	Autofilled	
+TelomericRepeatBindingFactor1	Unmatched			HGNC:11728		Probable	
+TNFR1	Previous symbol	TNFRSF1A	TNF receptor superfamily member 1A	HGNC:11916	12p13.31	Autofilled	
+TRADD	Approved symbol	TRADD	TNFRSF1A associated via death domain	HGNC:12030	16q22.1	Autofilled	
+ubiquitinproteinligaseWWP1	Unmatched			HGNC:17004		Probable	
+VCAM1mRNA	Unmatched			HGNC:12663		Probable	
+X-linkedinhibitorofapoptosis	Unmatched			HGNC:592		Probable	
