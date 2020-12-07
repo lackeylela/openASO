@@ -1,0 +1,6 @@
+successful combine
+x = sqldf("
++   SELECT *
++   FROM masteraso d1 JOIN masterdf d2
++   ON d1.gene = d2.gene_name
++ ")
