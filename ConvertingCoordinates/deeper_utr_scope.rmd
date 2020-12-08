@@ -5,6 +5,10 @@ date: 12/7/2020
 output: html_document
 ---
 
+### Puprpose
+The purpose of this script was to take a deeper look in the UTRs. We wanted to identify if the ASOs were binding to the 5' or 3' UTRs. We also looked at how much of the ASO was binding to the UTR.
+
+
 
 ### bring in libraries
 
