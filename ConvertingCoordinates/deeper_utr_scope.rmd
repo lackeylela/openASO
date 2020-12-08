@@ -1,0 +1,121 @@
+---
+title: "R Notebook"
+author: james
+date: 12/7/2020
+output: html_document
+---
+
+
+### bring in libraries
+
+```{r}
+
+library(tidyverse)
+
+```
+
+
+
+### read in the current data frame
+
+```{r}
+
+masterdf <- read.csv('masterdf.tsv', sep='\t')
+
+```
+
+### correct the utr bind columns
+
+```{r}
+
+# change the utr bind column to five prime utr bind (which is actually what it is)
+names(masterdf)[names(masterdf) == "utr_bind"] <- "five_prime_utr_bind"
+
+# identify the location of the last nucleotide of the cds
+# then identify asos that are binding after the last nucleotide (indicating 3' utr)
+masterdf$last_nucleotide_of_cds <- NA
+masterdf$three_prime_utr_bind <- NA
+
+# find where the cds portion of transcript ends within cdna
+for (i in 1:nrow(masterdf)){
+    transcript <- masterdf[i, "tx_id"]
+    last_nucleotide <- as.data.frame(str_locate(masterdf[i, "cdna"], masterdf[i, "cds"]))[1, 2]
+    masterdf[masterdf$tx_id == transcript, ]$last_nucleotide_of_cds <- last_nucleotide
+}
+
+# determine if the aso bind site is downstream of last nucletide
+for (i in 1:nrow(masterdf)){
+
+  # mark 1 for asos that do bind to the 3' utr, 0 for those that do not
+    if (masterdf[i, "aso_end"] > masterdf[i, "last_nucleotide_of_cds"]){
+        masterdf[i, "three_prime_utr_bind"] <- as.integer(1)
+    } else {
+        masterdf[i, "three_prime_utr_bind"] <- as.integer(0)
+    }
+}
+
+```
+
+
+### check how much of aso binds to five prime utr
+
+```{r}
+
+# check how many nucleotides of aso bind are in the 5' utr
+masterdf$nucleotides_of_five_prime_utr_bind <- NA
+
+for (i in 1:nrow(masterdf)){
+  five_prime_nucleotides <- masterdf[i, "start_codon_location"] - masterdf[i, "aso_start"]
+
+  if (five_prime_nucleotides > 0){
+
+    # if the whole aso binds to the utr, then mark the no. nucleotides as equal to the length of the aso
+    # if none of the aso binds to the 5' utr then mark nucleotide bind as 0
+    if (five_prime_nucleotides > nchar(masterdf[i, "aso_rc_seq"])){
+      masterdf[i, "nucleotides_of_five_prime_utr_bind"] <- nchar(masterdf[i, "aso_rc_seq"])
+    } else {
+      masterdf[i, "nucleotides_of_five_prime_utr_bind"] <- as.integer(five_prime_nucleotides)
+    }
+  } else {
+    masterdf[i, "nucleotides_of_five_prime_utr_bind"] <- as.integer(0)
+  }
+}
+
+
+```
+
+### check how much of aso binds to 3 prime utr
+
+```{r}
+
+# check how many nucleotides of aso bind are in the 5' utr
+masterdf$nucleotides_of_three_prime_utr_bind <- NA
+
+
+for (i in 1:nrow(masterdf)){
+  three_prime_nucleotides <- masterdf[i, "aso_end"] - masterdf[i, "last_nucleotide_of_cds"]
+
+  if (three_prime_nucleotides > 0){
+
+    # if the whole aso binds to the utr, then mark the no. nucleotides as equal to the length of the aso
+    # if none of the aso binds to the 5' utr then mark nucleotide bind as 0
+    if (three_prime_nucleotides > nchar(masterdf[i, "aso_rc_seq"])){
+      masterdf[i, "nucleotides_of_three_prime_utr_bind"] <- nchar(masterdf[i, "aso_rc_seq"])
+    } else {
+      masterdf[i, "nucleotides_of_three_prime_utr_bind"] <- as.integer(three_prime_nucleotides)
+    }
+  } else {
+    masterdf[i, "nucleotides_of_three_prime_utr_bind"] <- as.integer(0)
+  }
+}
+
+```
+
+
+### send to tsv (good place to pause)
+
+```{r}
+
+write.table(masterdf, file='deeper_utr_scope.tsv', sep='\t')
+
+```
