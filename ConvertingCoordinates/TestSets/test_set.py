@@ -10,7 +10,6 @@ df = pd.read_csv('../../deeper_utr_scope.tsv', sep='\t')
 df = df.loc[(df.effective != 0.06) & (df.effective != 0.03)]
 
 # split (stratify on effectiveness)
-X = df.drop(columns=['effective'])
 y = df.effective
 train_df, test_df = train_test_split(df, test_size=0.5, random_state=111, stratify=y)
 
