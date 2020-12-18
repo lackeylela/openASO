@@ -1,7 +1,7 @@
 ---
-title: "openASO_position"
-author: "Kim Wellman"
-date: "11/08/2020"
+title: "20201120_openASO_position"
+author: "Kim Wellman, Lela Lackey"
+date: "11/20/2020"
 output:
   html_document: 
     code_folding: hide
@@ -9,9 +9,6 @@ output:
 
 ### Purpose
 This script takes a pre-processed data frame of gene ID, gene sequence, and the reverse compliment of the ASO sequence and maps start/stop positions of the ASO using transcriptomic coordinates that are then converted to genomic coordinates. The output of this script should be in BED file format.
-
-#### CRUX
-IRanges is not built to accept multiple ranges from the same transcript because the unique identifier of the range is the transcript ID. By inputting multiple ASO coordinates targeting a single transcript, the output is erroneously the same genome ranges for different ASO sequences.
 
 ### Setup
 
@@ -28,6 +25,7 @@ library(splitstackshape)
 library(ensembldb)
 library(EnsDb.Hsapiens.v86)
 library(insect)
+library(dplyr)
 
 ```
 
@@ -35,15 +33,13 @@ library(insect)
 
 ```{r import, echo = TRUE, warning = FALSE}
 
-# genseq_byaso <- read.csv("~/Initial_df_Transcripts_KW.csv", stringsAsFactors = FALSE)
-genseq_byaso <- read.csv("~/ASO_position_script/openASO/CovertingCoordinates/Complete_ASOtoTranscriptSeq.tsv", sep="", stringsAsFactors=FALSE)
+genseq_byaso <- read.csv("~/ASO_position_script/Complete_ASOtoTranscriptSeq.tsv", sep="", stringsAsFactors=FALSE)
 
 # generate the reverse complement of the ASOs.
 genseq_byaso$aso_rc_seq <- rc(genseq_byaso$ASOseq)
 
 # confirm geneID of isoform to transcript_id
-# genseq_byaso$transcript_id <- gsub("\\..*","",genseq_byaso$hg38.knownGene.name)
-genseq_byaso$transcript_id <- genseq_byaso$hg38.knownGene.name
+genseq_byaso$transcript_id <- gsub("\\..*","",genseq_byaso$hg38.knownGene.name)
 
 ```
 
@@ -68,9 +64,6 @@ for(i in 1:dim(aso_txt_pos)[1]){
 }
 
 aso_txt_pos <- na.omit(aso_txt_pos, cols = "start")
-# This reducing the number of observations from 44002 to 17061 where one ASO can target multiple transcripts of the same gene.
-
-aso_txt_pos_test <- head(aso_txt_pos, 1000)
 
 ```
 
@@ -82,55 +75,43 @@ aso_txt_pos_test <- head(aso_txt_pos, 1000)
 # convert the transcript position information into an IRanges format. 
 # ir <- IRanges(start = aso_txt_pos$start, end = aso_txt_pos$end, width = (aso_txt_pos$end - aso_txt_pos$start + 1), names = aso_txt_pos$transcript_id)
 
-# ir <- IRanges(start = aso_txt_pos$start, width = (aso_txt_pos$end - aso_txt_pos$start + 1), names = aso_txt_pos$transcript_id)
-
-ir_test <- IRanges(start = aso_txt_pos_test$start, width = (aso_txt_pos_test$end - aso_txt_pos_test$start + 1), names = aso_txt_pos_test$transcript_id)
+ir <- IRanges(start = aso_txt_pos$start, width = (aso_txt_pos$end - aso_txt_pos$start + 1), names = aso_txt_pos$transcript_id)
 
 # create an EnsDB object containing genomic position information.
 dbfile <- system.file("extdata/EnsDb.Hsapiens.v86.sqlite", package = "EnsDb.Hsapiens.v86")
 db <- EnsDb(dbfile)
 
-# https://github.com/jorainer/ensembldb/blob/master/R/transcriptToX.R
-# gr <- transcriptToGenome(ir, db)
+gr <- transcriptToGenome(ir, db)
 
-gr_test <- transcriptToGenome(ir_test, db)
-
-# to convert the GRanges list to a GRanges object.
-# gr_test_unlist <- unlist(gr_test)
 ```
 
 ```{r GRanges to BED format, warning = FALSE}
-# TEST ONLY
 
-gnm_df <- data.frame(loci = seqnames(gr_test), 
-  starts = start(gr_test) - 1,
-  ends = end(gr_test)) %>%
-  dplyr::select(loci.group_name, loci.value, starts.value, ends.value)
-
-final_df <- full_join(aso_txt_pos, gnm_df, by = c('transcript_id' = 'loci.group_name'))
-
-write.csv(final_df, file = "20201108_openASO_gr.bed", quote = F, sep = "\t", row.names = F, col.names = F)
-
-# TEST ABOVE
-
+# create dataframe from GrangesList which groups GRanges together, ASOs by transcript. Loci.group connects multiple ranges (across exons) back to the original ASO. 
+# in order to connect the groups (potentially multiple GRanges when ASOs cross exons), we need the corresponding txt start/stop. 
 
 gnm_df <- data.frame(loci = seqnames(gr), 
   starts = start(gr) - 1,
-  ends = end(gr)) %>%
-  dplyr::select(loci.group_name, loci.value, starts.value, ends.value)
+  ends = end(gr), gr@unlistData@elementMetadata@listData[["tx_start"]], gr@unlistData@elementMetadata@listData[["tx_end"]]) 
 
-final_df <- full_join(aso_txt_pos, gnm_df, by = c('transcript_id' = 'loci.group_name'))
+colnames(gnm_df)[colnames(gnm_df) == "gr.unlistData.elementMetadata.listData...tx_start..."] <- "tx_start"
+colnames(gnm_df)[colnames(gnm_df) == "gr.unlistData.elementMetadata.listData...tx_end..."] <- "tx_end"
 
-write.csv(final_df, file = "openASO_gr.bed", quote = F, sep = "\t", row.names = F, col.names = F)
+gnm_df <- gnm_df %>% dplyr::select(loci.group_name, loci.value, loci.group, starts.value, ends.value, tx_start, tx_end)
+
+final_df <- full_join(aso_txt_pos, gnm_df, by = c('transcript_id' = 'loci.group_name', 'start' = 'tx_start', 'end' = 'tx_end'))
+
+# reshape the data by the loci.group
+
+# convert the data frame to bed format.
+
+# write.csv(final_df, file = "openASO_gr.bed", quote = F, sep = "\t", row.names = F, col.names = F)
 ```
+
+
+
 
 ```{r}
 sessionInfo()
 
-# geneID
-# tx_start/end
-# aso efficiency
-# loop through Ir, ask if there are additional ranges, then add a column matching the row with the additional start/stop, or add NAs. OR add and additional Row
-# change bed format converter to actually be bed format.
-# add an ASO #, at the input data file (save row names)
 ```
