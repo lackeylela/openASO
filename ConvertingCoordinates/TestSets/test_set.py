@@ -4,7 +4,7 @@ import pandas as pd
 
 
 # read in the dataframe
-df = pd.read_csv('../../deeper_utr_scope.tsv', sep='\t')
+df = pd.read_csv('../Complete_ASOtoTranscriptSeq.tsv', sep='\t')
 
 # drop the single value effectives to get an even split of effective
 df = df.loc[(df.effective != 0.06) & (df.effective != 0.03)]
