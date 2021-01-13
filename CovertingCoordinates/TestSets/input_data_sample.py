@@ -2,13 +2,6 @@
 import pandas as pd
 
 
-# # read in the tsv
-# df = pd.read_csv('../Data/Complete_ASOtoTranscriptSeq.tsv', sep=' ')
-#
-# # random 100 row sample
-# subsample_df = df.sample(n=100)
-#
-
 # define function that can be imported
 def subsample(file='../Data/Complete_ASOtoTranscriptSeq.tsv'):
     """
