@@ -79,7 +79,7 @@ aso_txt_pos <- na.omit(aso_txt_pos, cols = "start")
 # convert the transcript position information into an IRanges format. 
 # ir <- IRanges(start = aso_txt_pos$start, end = aso_txt_pos$end, width = (aso_txt_pos$end - aso_txt_pos$start + 1), names = aso_txt_pos$transcript_id)
 
-ir <- IRanges(start = aso_txt_pos$start, width = (aso_txt_pos$end - aso_txt_pos$start + 1), names = aso_txt_pos$transcript_id)
+ir <- IRanges(start = aso_txt_pos$start, width = (aso_txt_pos$end - aso_txt_pos$start), names = aso_txt_pos$transcript_id)
 
 # create an EnsDB object containing genomic position information.
 dbfile <- system.file("extdata/EnsDb.Hsapiens.v86.sqlite", package = "EnsDb.Hsapiens.v86")
