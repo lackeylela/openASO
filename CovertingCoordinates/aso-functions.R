@@ -16,7 +16,7 @@ db <- EnsDb(dbfile)
 dna <- ensembldb::getGenomeTwoBitFile(db)
 
 
-
+# must include if statement to check whether the transcript is non-protein coding
 # returns the cds of a transcript given the dna, db, and transcript name
 findCds <- function(dna, db, transcript) {
 
@@ -37,7 +37,7 @@ findCds <- function(dna, db, transcript) {
 }
 
 
-
+# must include if statement to check whether the transcript is non-protein coding
 # return the cdna of a transcript given the dna, db, and transcript name
 findCdna <- function(dna, db, transcript) {
 
@@ -165,21 +165,31 @@ threePrimeUtrBind <- function(last_nucleotide_location, aso_end_location, aso) {
 
 
 # identify whether the aso/transcript combo spans multiple exons
-exonExonAsoCheck <- function(dna, db, transcript, aso){
+exonExonAsoCheck <- function(dna, db, transcript, aso, cdna, reverse_complement, start_location, end_location){
 
   # find cdna of transcript
   txflt <- AnnotationFilter(~ tx_id == transcript)
-  cdna <- extractTranscriptSeqs(dna, db, filter=txflt)
+
+  if (missing(cdna)){
+    cdna <- extractTranscriptSeqs(dna, db, filter=txflt)
+  }
 
   # get reverse complement of aso
-  rc <- rc(aso)
+  if (missing(reverse_complement)){
+    reverse_complement <- rc(aso)
+  }
 
   # identify location of aso within transcript
-  start <- as.data.frame(str_locate(cdna, rc))[1, 1]
-  end <- as.data.frame(str_locate(cdna, rc))[1, 2]
+  if (missing(start_location)){
+    start_location <- as.data.frame(str_locate(cdna, reverse_complement))[1, 1]
+  }
+
+  if (missing(end_location)){
+    end_location <- as.data.frame(str_locate(cdna, reverse_complement))[1, 2]
+  }
 
   # define the irange
-  ir <- IRanges(start = start, end = end, names = transcript)
+  ir <- IRanges(start = start_location, end = end_location, names = transcript)
 
   # identify the GRange
   gr <- transcriptToGenome(ir, db)
@@ -189,8 +199,8 @@ exonExonAsoCheck <- function(dna, db, transcript, aso){
 
   # if aso spans multiple exons, return a 1, else return a 0
   if (numberOfExons > 1) {
-    return(1)
+    return(as.integer(1))
   } else {
-    return(0)
+    return(as.integer(0))
   }
 }
