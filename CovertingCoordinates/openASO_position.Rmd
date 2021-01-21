@@ -1,0 +1,144 @@
+---
+title: "20201214_openASO_position"
+author: "Kim Wellman, Lela Lackey"
+date: "12/14/2020"
+output:
+  html_document: 
+    code_folding: hide
+---
+
+### Purpose
+This script takes a pre-processed data frame of gene ID, gene sequence, and the reverse compliment of the ASO sequence and maps start/stop positions of the ASO using transcriptomic coordinates that are then converted to genomic coordinates. The output of this script should be in BED file format.
+
+### Setup
+
+```{r setup, warning = FALSE}
+
+# clear the global environment. 
+rm(list=ls())
+
+# get packages. 
+suppressMessages(library(tidyverse))
+library(readr)
+library(Biostrings)
+library(splitstackshape)
+library(ensembldb)
+library(EnsDb.Hsapiens.v86)
+library(insect)
+library(dplyr)
+
+# set up wd
+wdir <- setwd("~/Documents/school/openASO/CovertingCoordinates/")
+  
+```
+
+### Data input: pre-processed data from Ivan and Axel
+
+```{r import, echo = TRUE, warning = FALSE}
+
+genseq_byaso <- read.csv("Complete_ASOtoTranscriptSeq.tsv", sep = "", stringsAsFactors = FALSE)
+
+# generate the reverse complement of the ASOs.
+genseq_byaso$aso_rc_seq <- rc(genseq_byaso$ASOseq)
+
+# confirm geneID of isoform to transcript_id
+genseq_byaso$transcript_id <- gsub("\\..*","",genseq_byaso$hg38.knownGene.name)
+
+
+# make smol
+genseq_byaso <- head(genseq_byaso,1000)
+```
+
+### Map the transcriptomic coordinates
+
+These coordinates are relative to the first nucleotide of the transcript (not the CDS) in order to be compatible with the 'transcriptToGenome' ensembldb functionality.
+
+```{r transcriptomic coordinates, warning = FALSE}
+
+# loop through each row to look for where each ASO sequence is located along the target transcript sequence. The'start' and 'end' positions are in relation to the start of the transcript and also represent character position within each transcript sequence string. 
+
+aso_txt_pos <- genseq_byaso
+aso_txt_pos$start <- NA
+aso_txt_pos$end <- NA
+
+for(i in 1:dim(aso_txt_pos)[1]){
+  string <- genseq_byaso[i, "Sequence"]
+  pattern <- genseq_byaso[i, "aso_rc_seq"]
+  coord <- as.data.frame(str_locate(string, pattern))
+  aso_txt_pos[i, "start"] <- coord[1, "start"]
+  aso_txt_pos[i, "end"] <- coord[1, "end"]
+}
+
+aso_txt_pos <- na.omit(aso_txt_pos, cols = "start")
+
+```
+
+### Convert the transcriptomic coordinates into genomic coordinates
+
+
+```{r genomic coordinates, warning = FALSE}
+
+# convert the transcript position information into an IRanges format.
+# add an ASO group number 'aso_grp' to be able to connect two genome ranges corresponding to the same ASO, but spanning exons.
+
+ir <- IRanges(start = aso_txt_pos$start, width = (aso_txt_pos$end - aso_txt_pos$start), names = aso_txt_pos$transcript_id, aso_grp = list(rownames(aso_txt_pos)))
+
+# create an EnsDB object containing genomic position information.
+dbfile <- system.file("extdata/EnsDb.Hsapiens.v86.sqlite", package = "EnsDb.Hsapiens.v86")
+db <- EnsDb(dbfile)
+
+# latest version of X.toGenome tries to replace id with a group identifier. Defaults to using 'NAMES' transcript id which is not unique enough to join back at the very end.
+
+gr <- transcriptToGenome(ir, db)
+# gr <- transcriptToGenome(ir, db, id = mcols(ir)[,1])
+# gr <- transcriptToGenome(ir, db, id = mcols(ir)$aso_grp)
+  
+```
+
+```{r GRanges to data frame, warning = FALSE}
+
+# create dataframe from GrangesList which groups GRanges together, ASOs by transcript. aso_grp connects multiple ranges (across exons) back to the original ASO. 
+
+# unlist the GRanges object to be able to pull transcript start/end information without direct reference to transcript.
+gr_unlist <- unlist(gr, recursive = TRUE, use.names = TRUE)
+
+gnm_df <- data.frame(chrom = seqnames(gr_unlist), 
+                     chromStart = start(gr_unlist),
+                     chromEnd = end(gr_unlist) + 1, 
+                     strand = strand(gr_unlist), 
+                     gr_unlist@ranges@width, 
+gr_unlist@elementMetadata@listData[["tx_id"]], gr_unlist@elementMetadata@listData[["tx_start"]], gr_unlist@elementMetadata@listData[["tx_end"]]) 
+
+# clean up column names and data frame
+colnames(gnm_df)[colnames(gnm_df) ==
+                   "gr_unlist.elementMetadata.listData...tx_start..."] <- "tx_start"
+colnames(gnm_df)[colnames(gnm_df) ==
+                   "gr_unlist.elementMetadata.listData...tx_end..."] <- "tx_end"
+colnames(gnm_df)[colnames(gnm_df) ==
+                   "gr_unlist.elementMetadata.listData...tx_id..."] <- "tx_id"
+colnames(gnm_df)[colnames(gnm_df) ==
+                   "gr_unlist.ranges.width"] <- "width"
+
+```
+
+```{r GRanges to BED format, warning = FALSE}
+# create new data frame that connects ASO info to generated genome range info.
+df <- merge(aso_txt_pos, gnm_df, by.x = c('transcript_id', 'start'), by.y = c('tx_id', 'tx_start'))
+
+# add a unique identifier
+df$uniq_id <- paste(df$GeneID, "_", df$ASOseq)
+
+# reorder columns to match BED format.
+col_order <- c("chrom", "chromStart", "chromEnd", "uniq_id", "transcript_id", "ASOseq", "aso_rc_seq", "ASOeffective","strand","start", "end", "tx_end", "width", "GeneID", "OriginalName", "HGNC.ID", "hg38.knownGene.name", "Sequence")
+final_df <- df[ , col_order]
+
+# write.csv(final_df, file = "openASO_gr.bed", quote = F, sep = "\t", row.names = F, col.names = F)
+```
+
+
+
+
+```{r}
+sessionInfo()
+
+```
