@@ -26,3 +26,4 @@ for i in gene_check.keys():
     if gene_check[i] == 0:
         missing_genes.append(i)
 
+# TODO: need to figure out how we can have high ASOeffective but no ASO match in any of the transcripts?
