@@ -38,5 +38,3 @@ for rc in rc_asos:
 
 print(f'BIRC2 match count: {birc2_counter}\n'
       f'BIRC3 match count: {birc3_counter}')
-
-# TODO: check out MAPK8 / MAPK9 relative to JNK1 / JNK2
