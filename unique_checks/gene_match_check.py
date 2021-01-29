@@ -28,3 +28,7 @@ for i in gene_check.keys():
 
 
 # TODO: need to figure out how we can have high ASOeffective but no ASO match in any of the transcripts?
+
+# TODO: which genes do the missing ASOs belong to?
+
+# TODO: check ASOs in blast to look for mismatch in ASOs?
