@@ -12,15 +12,15 @@ Lela Lackey was the team lead and coordinator. Team members worked in three majo
 
 **Data processing**
 
-Axel Hauduc, Ivan Jimenez, Jayashree Kumar, and Kimberly Wellman were members of the data processing group of team openASO. This group took ASO sequences and incomplete gene target information, and built a data frame from which new features could be analyzed. This entailed data clean up and standardization of the gene names to HGNC nomenclature. Transcript sequences of ASO targets were also included so that ASOs could be mapped to transcript coordinates as well as genome coordinates. Some of the features included in this data frame were secondary structure, RNA-binding protein occupancy, and frequency of SNP variation.
+Axel Hauduc, Ivan Jimenez, Jayashree Kumar, James Adler and Kimberly Wellman are members of the data processing group of team openASO. This group took ASO sequences and incomplete gene target information, and built a data frame from which new features could be analyzed. This entailed data clean up and standardization of the gene names to HGNC nomenclature. Transcript sequences of ASO targets were also included so that ASOs could be mapped to transcript coordinates as well as genome coordinates. Some of the features included in this data frame were secondary structure, RNA-binding protein occupancy, and frequency of SNP variation.
 
 **Machine Learning**
 
-Shawn Hsueh, Alex Sweeten and Tony Shen were members of the machine learning team of openASO. THey worked on the machine learning algorithm. They used sci-kit learn to develop a SVM Regression algorithm. This will be used on the final dataset including target RNA secondary structure, RNA-binding protein occupancy, and SNP variation.
+Shawn Hsueh, Alex Sweeten and Tony Shen are members of the machine learning team of openASO. THey worked on the machine learning algorithm. They used sci-kit learn to develop a SVM Regression algorithm. This will be used on the final dataset including target RNA secondary structure, RNA-binding protein occupancy, and SNP variation.
 
 **Visualization**
 
-Sophia Shen, Owen Tsai, Helena Catena Sánchez and Kelly Wei were members of the visualization team of openASO. They made an interactive R Shiny table, where you can load the ASO data in tsv format and visualize it. There is an interactive table where you can select and filter by table attributes. We plan to expand this and show a representation of each transcript and where the different ASO bind and their features.
+Sophia Shen, Owen Tsai, Helena Catena Sánchez and Kelly Wei are members of the visualization team of openASO. They made an interactive R Shiny table, where you can load the ASO data in tsv format and visualize it. There is an interactive table where you can select and filter by table attributes. We plan to expand this and show a representation of each transcript and where the different ASO bind and their features.
 
 
 # Data sources:
