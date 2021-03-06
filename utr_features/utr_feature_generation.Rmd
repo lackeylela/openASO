@@ -1,0 +1,86 @@
+---
+title: "utr_feature_creation"
+author: "yimmy a"
+date: "3/4/2021"
+output: html_document
+---
+
+```{r library}
+
+# bring in utr functions
+source('CovertingCoordinates/aso-functions.R')
+
+# set working directory
+getwd()
+
+```
+
+
+```{r read_and_process}
+
+getwd()
+
+data <- read.csv('../Data/Complete_ASOtoTranscriptSeq.tsv', sep="",stringsAsFactors=FALSE)
+
+# identify unique transcripts
+tx_unique <- unique(data$hg38.knownGene.name)
+tx_unique <- data.frame(tx_unique)
+
+# eliminate .# from transcript id
+for (row in 1:nrow(tx_unique)){
+  transcript <- tx_unique[row, "tx_unique"]
+  tx_unique[row, "tx_unique"] <- substr(transcript, 0, 15)
+}
+
+# initiate cds and cdna columns for each transcript
+tx_unique$cds <- NA
+tx_unique$cdna <- NA
+
+# find cds, cdna
+for (row in 1:nrow(tx_unique)){
+  transcript_id <- tx_unique[row,"tx_unique"]
+  
+  # cds
+  cds <- findCds(dna, db, transcript_id)
+  if (length(cds) > 0){
+    tx_unique[row,"cds"] <- cds
+  }
+  
+  # cdna
+  cdna <- findCdna(dna, db, transcript_id)
+  if (length(cdna) > 0){
+    tx_unique[row, "cdna"] <- cdna
+  }
+  
+}
+
+```
+
+
+```{r locations}
+
+# eliminate na cds rows
+# tx_unique_2 <- na.omit(tx_unique)
+
+# initiate start and end columns
+tx_unique_2$start_codon <- NA
+tx_unique_2$last_nucleotide <- NA
+
+# identify start and end columns
+for (row in 1:nrow(tx_unique_2)){
+  cds <- tx_unique_2[row, "cds"]
+  cdna <- tx_unique_2[row, "cdna"]
+  tx_unique_2[row, "start_codon"] <- findStartCodon(cds, cdna)
+  tx_unique_2[row, "last_nucleotide"] <- findLastNucleotide(cds, cdna)
+}
+
+```
+
+
+```{r to_tsv}
+
+# write table to tsv
+write.table(tx_unique_2, file='cds_cdna.tsv', sep='\t', col.names=NA)
+
+```
+
