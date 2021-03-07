@@ -16,18 +16,13 @@ source('CovertingCoordinates/aso-functions.R')
 
 ```{r read_and_process}
 
-# read in primary tsv
+# read in primary tsv and remove .# from transcript name
 data <- read.csv('../Data/Complete_ASOtoTranscriptSeq.tsv', sep="",stringsAsFactors=FALSE)
 data$hg38.knownGene.name <- substr(data$hg38.knownGene.name, 0, 15)
 
 # identify unique transcripts
 tx_unique <- unique(data$hg38.knownGene.name)
 tx_unique <- data.frame(tx_unique)
-
-# eliminate .# from transcript id
-for (row in 1:nrow(tx_unique)){
-  transcript <- tx_unique[row, "tx_unique"]
-}
 
 # initiate cds and cdna columns for each transcript
 tx_unique$cds <- NA
@@ -57,7 +52,7 @@ for (row in 1:nrow(tx_unique)){
 ```{r locations}
 
 # eliminate na cds rows
-# tx_unique_2 <- na.omit(tx_unique)
+tx_unique_2 <- na.omit(tx_unique)
 
 # initiate start and end columns
 tx_unique_2$start_codon <- NA
@@ -158,7 +153,7 @@ for (row in 1:nrow(data_3)){
 ```{r to_tsv}
 
 # write table to tsv
-write.table(tx_unique_2, file='cds_cdna.tsv', sep='\t', col.names=NA)
+write.table(data_3, file='utr_features.tsv', sep='\t', col.names=NA)
 
 ```
 
