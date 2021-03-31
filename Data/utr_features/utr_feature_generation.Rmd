@@ -1,0 +1,176 @@
+---
+title: "utr_feature_creation"
+author: "yimmy a"
+date: "3/4/2021"
+output: html_document
+---
+
+```{r library}
+
+# bring in utr functions
+source('../../CovertingCoordinates/aso-functions.R')
+
+getwd()
+```
+
+
+```{r read_and_process}
+
+# read in primary tsv and remove .# from transcript name columns
+data <- read.csv('../mane refinements/completeASO_w_maneRefine.tsv', sep="",stringsAsFactors=FALSE)
+data <- data[,-1]
+data$hg38.knownGene.name <- substr(data$hg38.knownGene.name, 0, 15)
+
+# generate unique identifier column
+data$unique_id <- paste(data$GeneID, " _ ", data$ASOseq)
+
+# MANE addition
+# can be commented out if we decide not to go this route
+data$tx_id = substr(data$tx_id,0,15)
+data = data[which(data$hg38.knownGene.name == data$tx_id),]
+
+# identify unique transcripts
+tx_unique <- unique(data$hg38.knownGene.name)
+tx_unique <- data.frame(tx_unique)
+
+# initiate cds and cdna columns for each transcript
+tx_unique$cds <- NA
+tx_unique$cdna <- NA
+
+# find cds, cdna
+for (row in 1:nrow(tx_unique)){
+  transcript_id <- tx_unique[row,"tx_unique"]
+  
+  # cds
+  cds <- findCds(dna, db, transcript_id)
+  if (length(cds) > 0){
+    tx_unique[row,"cds"] <- cds
+  }
+  
+  # cdna
+  cdna <- findCdna(dna, db, transcript_id)
+  if (length(cdna) > 0){
+    tx_unique[row, "cdna"] <- cdna
+  }
+  
+}
+
+```
+
+
+```{r locations}
+
+# eliminate na cds rows
+tx_unique_2 <- na.omit(tx_unique)
+
+# initiate start and end columns
+tx_unique_2$start_codon <- NA
+tx_unique_2$last_nucleotide <- NA
+
+# identify start and end columns
+for (row in 1:nrow(tx_unique_2)){
+  cds <- tx_unique_2[row, "cds"]
+  cdna <- tx_unique_2[row, "cdna"]
+  tx_unique_2[row, "start_codon"] <- findStartCodon(cds, cdna)
+  tx_unique_2[row, "last_nucleotide"] <- findLastNucleotide(cds, cdna)
+}
+
+```
+
+
+```{r merge_info}
+
+# create start_codon and last_nucleotide columns in primary dataframe
+data$start_codon <- NA
+data$last_nucleotide <- NA
+
+# index tx_unique to fill start_codon and last_nucleotide columns
+for (row in 1:nrow(tx_unique_2)){
+  tx_id <- tx_unique_2[row, "tx_unique"]
+  data$start_codon[which(data$hg38.knownGene.name == tx_id)] <- tx_unique_2[row, "start_codon"]
+  data$last_nucleotide[which(data$hg38.knownGene.name == tx_id)] <- tx_unique_2[row, "last_nucleotide"]
+}
+
+# omit remaining NAs, indicating non-protein-coding
+data_2 <- na.omit(data)
+
+```
+
+```{r aso_bind_locations}
+
+# generate reverse compliments
+data_2$rc_seq <- NA
+
+baseMatch <- c("A", "T", "C", "G", "N")
+names(baseMatch) <- c("T", "A", "G", "C", "N")
+
+for (row in 1:nrow(data_2)){
+  aso_seq <- data_2[row, "ASOseq"]
+  aso_comp <- chartr("ATGC", "TACG", aso_seq)
+  data_2[row, "rc_seq"] <- sapply(lapply(strsplit(aso_comp, NULL), rev), paste, collapse="")
+}
+
+# identify aso binding locations
+data_2$aso_start <- NA
+data_2$aso_end <- NA
+
+for (row in 1:nrow(data_2)){
+  aso_bind_coords <- str_locate(data_2[row, "Sequence"], data_2[row, "rc_seq"])
+  data_2[row, "aso_start"] <- aso_bind_coords[1, 1]
+  data_2[row, "aso_end"] <- aso_bind_coords[1, 2]
+}
+
+# omit rows that had no aso match ( this should really go up to the top so we
+# don't do all these calculations and indexing for a row that isn't
+# going to produce a matching aso )
+data_3 <- na.omit(data_2)
+
+```
+
+
+```{r identify_utr_bind}
+
+# initiate utr columns
+data_3$threePrimeUtrBind <- NA
+data_3$lengthThreePrimeBind <- NA
+data_3$fivePrimeUtrBind <- NA
+data_3$lengthFivePrimeBind <- NA
+
+# determine if aso binds to aso and the length of the bind
+for (row in 1:nrow(data_3)){
+  
+  # 3' utr
+  last_nucleotide_location <- data_3[row, "last_nucleotide"]
+  aso_end_location <- data_3[row, "aso_end"]
+  aso <- data_3[row, "ASOseq"]
+  three_prime_info <- threePrimeUtrBind(last_nucleotide_location,aso_end_location,aso)
+  data_3[row, "threePrimeUtrBind"] <- three_prime_info["binds"]
+  data_3[row, "lengthThreePrimeBind"] <- three_prime_info["length_of_bind"]
+  
+  # 5' utr
+  start_codon_location <- data_3[row, "start_codon"]
+  aso_start_location <- data_3[row, "aso_start"]
+  five_prime_info <- fivePrimeUtrBind(start_codon_location,aso_start_location,aso)
+  data_3[row, "fivePrimeUtrBind"] <- five_prime_info["binds"]
+  data_3[row, "lengthFivePrimeBind"] <- five_prime_info["length_of_bind"]
+  
+}
+
+
+```
+
+```{r subset to relevant utr features}
+
+# subset to relevant utr features
+data_3 = subset(data_3, select=c('unique_id', 'threePrimeUtrBind', 'lengthThreePrimeBind', 'fivePrimeUtrBind', 'lengthFivePrimeBind'))
+
+```
+
+```{r to_tsv}
+
+# write table to tsv
+write.table(data_3, file='justincase.tsv', sep='\t', row.names=FALSE)
+
+```
+
+

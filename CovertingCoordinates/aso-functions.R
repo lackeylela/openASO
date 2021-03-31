@@ -6,7 +6,7 @@
 
 library("stringr")
 library(insect)
-
+library(EnsDb.Hsapiens.v86)
 
 
 # defining here for now but don't know that this is actually the right place for these to be defined (seems like they should actually be environment variables)
