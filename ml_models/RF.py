@@ -37,7 +37,7 @@ def parse_args():
 
 def get_input_file():
     try:
-        ASO_file = pd.read_csv(args.input.name, delimiter="\t")
+        ASO_file = pd.read_csv(args.input.name, delimiter=",")
         return(ASO_file)
     except Exception as err:
         print("Error opening file.")
@@ -137,7 +137,7 @@ def combine_features(*args):
             if isinstance(a[index], list):
                 new_list = new_list + a[index]
             else:
-                new_list = new_list + list(a[index])
+                new_list = new_list + list(a)
         
         combined_features.append(new_list)
         
@@ -146,47 +146,61 @@ def combine_features(*args):
 
 
 #####args.input.name = 'example_data/Processed_IDT_ASO_Data'
-sys.argv = ['RF.py', '../example_data/Processed_IDT_ASO_Data']
+#sys.argv = ['RF.py', '../example_data/Processed_IDT_ASO_Data']
+sys.argv = ['RF.py', '../example_data/Mockup_UltimateDataSet.csv']
 args = parse_args()
 ASO_score_data = get_input_file()
 
 #####build location info features
-location_info = ASO_score_data["ASO"].apply(lambda x: one_hot(split(x)))
+location_info = ASO_score_data["ASOseq"].apply(lambda x: one_hot(split(x)))
 location_info = location_info.apply(lambda l: [item for sublist in l for item in sublist])
 
 #build gene info features
-gene_pool = list(set(ASO_score_data["gene"]))[1:]
-gene_info = ASO_score_data["gene"].apply(lambda x: one_hot_gene(x, gene_pool))
+structure_features = []
+for i in range(len(ASO_score_data.columns)):
+    if ASO_score_data.columns[i].find('RNAstructScore') !=-1:
+        structure_features.append(ASO_score_data.columns[i])
+
+#build structure info features
+gene_pool = list(set(ASO_score_data["GeneID"]))[1:]
+gene_info = ASO_score_data["GeneID"].apply(lambda x: one_hot_gene(x, gene_pool))
 
 #####build kmers(2-5 mer) features
 symbol_2mers = get_kmers(2)
 symbol_3mers = get_kmers(3)
 symbol_4mers = get_kmers(4)
 symbol_5mers = get_kmers(5)
-features_2mer = get_features(ASO_score_data["ASO"], symbol_2mers)
-features_3mer = get_features(ASO_score_data["ASO"], symbol_3mers)
-features_4mer = get_features(ASO_score_data["ASO"], symbol_4mers)
-features_5mer = get_features(ASO_score_data["ASO"], symbol_5mers)
+features_2mer = get_features(ASO_score_data["ASOseq"], symbol_2mers)
+features_3mer = get_features(ASO_score_data["ASOseq"], symbol_3mers)
+features_4mer = get_features(ASO_score_data["ASOseq"], symbol_4mers)
+features_5mer = get_features(ASO_score_data["ASOseq"], symbol_5mers)
 
 #####construct X
 X = location_info.to_list()
 X = combine_features(X, gene_info.to_list())
 X = combine_features(X, features_2mer)
 X = combine_features(X, features_3mer)
-#X = combine_features(X, features_4mer)
-#X = combine_features(X, features_5mer)
+X = combine_features(X, features_4mer)
+X = combine_features(X, features_5mer)
+X = combine_features(X, ASO_score_data["chr"].to_list())
+X = combine_features(X, ASO_score_data["AtoIeditingScore1"].to_list())
+X = combine_features(X, ASO_score_data["RBPscore1"].to_list())
+for i in range(len(structure_features)):
+    X = combine_features(X, ASO_score_data[structure_features[i]].to_list())
 
 #####construct Y
-Y = ASO_score_data["score"]
+Y = ASO_score_data["ASOeffective"]
 
-#####feature names
+#####constrcut feature names
 ATCG_identity = ['A','C','G','T']
 features = ["1"]*4*22
 for i in range(len(features)):
     base = i%4
     features[i] = 'if position ' + str(i//4) +' is ' + ATCG_identity[base]
 
-features = features + gene_pool + symbol_2mers + symbol_3mers
+#features = features + gene_pool + symbol_2mers + symbol_3mers
+features = features + gene_pool + symbol_2mers + symbol_3mers +symbol_4mers + symbol_5mers\
+    + ['chr', "AtoIeditingScore1", "RBPscore1"] + structure_features
 features = np.array(features)
 
 #####split test/train
@@ -197,7 +211,7 @@ Y_train = np.array(Y_train)
 Y_test = np.array(Y_test)
 
 #####training model
-tfbs_classifier = RandomForestRegressor(n_estimators=1000)
+tfbs_classifier = RandomForestRegressor(n_estimators=100)
 tfbs_classifier.fit(X_train, Y_train)
 Y_pred = tfbs_classifier.predict(X_test)
 
@@ -217,17 +231,18 @@ for f in range(len(indices)):
     print("%d. feature %s (%f)" % (f + 1, features[indices[f]], importances[indices[f]]))
 
 ##### Plot feature importance
-fig, ax = plt.subplots()
+fig, ax = plt.subplots(figsize=(15,15))
 plt.title("Feature importances")
 #ax.barh(range(len(indices)), importances[indices], color="r", xerr=std[indices], align="center")
 ax.barh(range(len(indices)), importances[indices], color="r", align="center")
 ax.set_yticks(range(len(indices)))
 ax.set_yticklabels(features[indices])
-fig.savefig('figure/feature_importance.png', bbox_inches='tight', dpi=200)
+fig.savefig('../figure/feature_importance.png', bbox_inches='tight', dpi=200)
 #plt.show()
 
 '''
 #visual inspection to the predicted data
 plt.plot(Y_test, Y_pred, '.')
+plt.xlabel('Real RNA effective')
 plt.show()
 '''
