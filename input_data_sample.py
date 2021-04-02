@@ -42,7 +42,7 @@ def distributed_sample(file='Data/Complete_ASOtoTranscriptSeq.tsv',
 
     # define intervals if not defined in function call
     if intervals is None:
-        intervals = [0, .1, .2, .3, .4, .5, .6, .7, .8, .9, 1]
+        intervals = [0, .1, .2, .3, .4, .5, .6, .7, .8, .9, 1.01]
 
     # initiate empty variables
     i = 0
@@ -55,7 +55,7 @@ def distributed_sample(file='Data/Complete_ASOtoTranscriptSeq.tsv',
     while i < len(intervals) - 1:
         low = intervals[i]
         high = intervals[i + 1]
-        index_list = df.index[(df.ASOeffective > low) & (df.ASOeffective < high)].tolist()
+        index_list = df.index[(df.ASOeffective >= low) & (df.ASOeffective < high)].tolist()
         lengths.append(len(index_list))
         i += 1
 
@@ -69,7 +69,7 @@ def distributed_sample(file='Data/Complete_ASOtoTranscriptSeq.tsv',
     while i < len(intervals) - 1:
         low = intervals[i]
         high = intervals[i + 1]
-        index_list = df.index[(df.ASOeffective >= low) & (df.ASOeffective <= high)].tolist()
+        index_list = df.index[(df.ASOeffective >= low) & (df.ASOeffective < high)].tolist()
         s = sample(index_list, lowest_rep)
         indeces.extend(s)
         i += 1
