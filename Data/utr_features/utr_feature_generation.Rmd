@@ -16,21 +16,24 @@ getwd()
 
 ```{r read_and_process}
 
+# MOVED THIS FIRST PART TO THE uniqiueTranscriptMANE.R
 # read in primary tsv and remove .# from transcript name columns
-data <- read.csv('../mane refinements/completeASO_w_maneRefine.tsv', sep="",stringsAsFactors=FALSE)
-data <- data[,-1]
-data$hg38.knownGene.name <- substr(data$hg38.knownGene.name, 0, 15)
+data <- read.csv('../uniqueIds.tsv', sep="\t",stringsAsFactors=FALSE)
+# data <- data[,-1]
+# data$hg38.knownGene.name <- substr(data$hg38.knownGene.name, 0, 15)
 
 # generate unique identifier column
-data$unique_id <- paste(data$GeneID, " _ ", data$ASOseq)
+# data$unique_id <- paste(data$GeneID, " _ ", data$ASOseq)
 
 # MANE addition
 # can be commented out if we decide not to go this route
-data$tx_id = substr(data$tx_id,0,15)
-data = data[which(data$hg38.knownGene.name == data$tx_id),]
+# data$tx_id = substr(data$tx_id,0,15)
+# data = data[which(data$hg38.knownGene.name == data$tx_id),]
+```
 
+```{r}
 # identify unique transcripts
-tx_unique <- unique(data$hg38.knownGene.name)
+tx_unique <- unique(data$tx_id)
 tx_unique <- data.frame(tx_unique)
 
 # initiate cds and cdna columns for each transcript
@@ -87,8 +90,8 @@ data$last_nucleotide <- NA
 # index tx_unique to fill start_codon and last_nucleotide columns
 for (row in 1:nrow(tx_unique_2)){
   tx_id <- tx_unique_2[row, "tx_unique"]
-  data$start_codon[which(data$hg38.knownGene.name == tx_id)] <- tx_unique_2[row, "start_codon"]
-  data$last_nucleotide[which(data$hg38.knownGene.name == tx_id)] <- tx_unique_2[row, "last_nucleotide"]
+  data$start_codon[which(data$tx_id == tx_id)] <- tx_unique_2[row, "start_codon"]
+  data$last_nucleotide[which(data$tx_id == tx_id)] <- tx_unique_2[row, "last_nucleotide"]
 }
 
 # omit remaining NAs, indicating non-protein-coding
@@ -169,7 +172,7 @@ data_3 = subset(data_3, select=c('unique_id', 'threePrimeUtrBind', 'lengthThreeP
 ```{r to_tsv}
 
 # write table to tsv
-write.table(data_3, file='justincase.tsv', sep='\t', row.names=FALSE)
+write.table(data_3, file='utrFeatures.tsv', sep='\t', row.names=FALSE)
 
 ```
 
