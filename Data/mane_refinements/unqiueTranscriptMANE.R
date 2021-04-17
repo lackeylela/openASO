@@ -32,6 +32,9 @@ mane_refine = data[which(data$hg38.knownGene.name == data$tx_id),]
 # drop all duplicates (ie PIK3CD was dropped completely)
 mane_refine = mane_refine[which(table(mane_refine$unique_id) == 1),]
 
+# drop redundant tx name column
+mane_refine = subset(mane_refine, select = -c(hg38.knownGene.name))
+
 # write table to tsv
 write.table(mane_refine, file='C:/Users/james/R/openASO/openASOcorrect/Data/uniqueIds.tsv',
             sep='\t',
