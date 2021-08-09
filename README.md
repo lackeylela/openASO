@@ -6,6 +6,20 @@ Can machine learning be used to identify aspects of RNA targets that make antise
 
 Antisense oligonucleotides (ASOs) have a high potential therapeutic value as they can be used to target any transcript and regulate its expression. One factor in choosing an effective ASO is identifying an open, unstructured region of the target RNA. However, RNA is a flexible molecule best represented by an ensemble of structures.  Does using ensemble modeling to identify open regions within the target RNA promote selection of more suitable ASO sequences? To answer this question we will use machine learning to ask whether ensemble guided structure models perform better than traditional minimum free energy structure using publicly available datasets of ASOs and their targeting efficiency. Other known attributes that affect ASO targeting will be incorporated in both algorithms including RNA binding protein data (eCLIP) data.  Finally, we will build a visualization tool where users can input their gene of interest and map regions suitable for further ASO design and testing.
 
+## Scripts
+
+**Determine ASO targets from sequence alone**
+We developed a script based on BLAST to identify the top gene target for ASOs with no known gene target information.
+
+**Determine ASO binding site to a transcript**
+We developed an R script to take a list of ASOs and their target gene and identify where the ASO hybridizes to a reduced set of transcripts (MANE).
+
+**Determine transcript binding site genomic coordinates**
+We developed an R script to take transcript ASO binding information and identify the genomic coordinates to link to other datasources (eCLIP, etc).
+
+**Feature generation**
+We developed several R scripts to identify features of ASO binding sites including where the ASO binds in the transcript (UTR vs coding), GC content of the ASO, RNA structure of the target RNA and protein binding site overlap. 
+
 ## Team members
 
 Lela Lackey was the team lead and coordinator. Team members worked in three major groups including:
