@@ -1,0 +1,32 @@
+---
+title: "9-1-21_DataOverView.Rmd"
+author: "Lela Lackey"
+date: "9/2/2021"
+output: html_document
+---
+##Purpose: Graphics for the Data input to OpenASO.
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+#Run 9-1-21_openASO_position.Rmd to generate datasets for analysis
+```
+
+```{r visualize, echo = FALSE}
+genseq_byaso %>% dplyr::select(GeneID, ASOeffective) %>% summary()
+genseq_byaso %>% group_by(GeneID) %>% summarise(n = n())
+genseq_byaso %>% group_by(ASOseq) %>% summarise(n = n()) %>% ggplot(aes(n)) + geom_histogram()
+final_df %>% dplyr::select(GeneID, ASOeffective) %>% summary()
+final_df %>% group_by(ASOseq) %>% summarise(n = n()) %>% ggplot(aes(n)) + geom_histogram()
+final_df %>% ggplot(aes(uniq_id, width)) + geom_point()
+
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
