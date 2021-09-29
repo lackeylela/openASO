@@ -1,0 +1,301 @@
+---
+title: "Selecting sequence from transcript for structural folding"
+author: "Kim Wellman, Lela Lackey, Jaya Kumar"
+date: "9/10/2021"
+output:
+  pdf_document: default
+  html_document:
+    code_folding: hide
+---
+
+### Purpose
+This script takes a pre-processed data frame of gene ID, gene sequence, and the reverse compliment of the ASO sequence, selects transcript sequence for computational folding and maps start/stop positions of the ASO using transcriptomic coordinates. Output should be ASO_IDs and free energy of unfolding for each region.
+
+### Setup
+
+```{r setup, warning = FALSE}
+
+# clear the global environment. 
+rm(list=ls())
+
+# get packages. 
+suppressMessages(library(tidyverse))
+library(readr)
+library(dplyr)
+library(insect)
+
+# set up wd
+wdir <- setwd("~/Google Drive/My Drive/HackathonProject/rnastructurefeatures/generate_RNAstructure_data_for_ml/")
+  
+```
+
+### Data input: pre-processed data from Ivan and Axel, use MANE dataset for representative transcript
+
+```{r import, echo = TRUE, warning = FALSE}
+wdir
+genseq_byaso <- read.csv("Complete_ASOtoTranscriptSeq.tsv", sep = "", stringsAsFactors = FALSE)
+
+# generate the reverse complement of the ASOs.
+genseq_byaso$aso_rc_seq <- rc(genseq_byaso$ASOseq)
+
+# confirm geneID of isoform to transcript_id
+genseq_byaso$transcript_id <- gsub("\\..*","",genseq_byaso$hg38.knownGene.name)
+
+
+# make smol
+#genseq_byaso <- head(genseq_byaso,1000)
+
+#select MANE representative transcripts (https://www.ncbi.nlm.nih.gov/refseq/MANE/)
+MANE <- read.delim("MANE.GRCh38.v0.93.summary.txt")
+genseq_byaso <- merge(MANE, genseq_byaso, by.x = "Ensembl_nuc", by.y ="hg38.knownGene.name")
+
+```
+
+### Write a transcript file and map the transcriptomic coordinates
+
+```{r transcripts folding, warning = FALSE}
+
+# loop through each row to look for where each ASO sequence is located along the target transcript sequence. The'start' and 'end' positions are in relation to the start of the transcript and also represent character position within each transcript sequence string. 
+
+aso_txt_pos <- genseq_byaso %>% unique()
+aso_txt_pos$start <- NA
+aso_txt_pos$end <- NA
+
+for(i in 1:dim(aso_txt_pos)[1]){
+  string <- genseq_byaso[i, "Sequence"]
+  pattern <- genseq_byaso[i, "aso_rc_seq"]
+  coord <- as.data.frame(str_locate(string, pattern))
+  aso_txt_pos[i, "start"] <- coord[1, "start"]
+  aso_txt_pos[i, "end"] <- coord[1, "end"]
+}
+
+aso_txt_pos <- na.omit(aso_txt_pos, cols = "start")
+
+#List of transcripts in dataset to generate fasta files and structures
+
+transcripts <- aso_txt_pos %>% dplyr::select(transcript_id, Sequence) %>% unique()
+#write_delim(transcripts, file = "9-10-21_TranscriptsFold.tab", delim = "\t")
+```
+
+###Create a file with the ASO position
+
+```{r positions, warning = FALSE}
+#List of asoID, transcript name, transcript start and stop coordinates and folding start and stop coordinates
+
+selected_aso_txt_pos <- aso_txt_pos %>% mutate(length = nchar(Sequence)) %>% 
+  dplyr::select(GeneID, ASOseq, transcript_id, start, end, length, ASOeffective) %>% unique()
+selected_aso_txt_pos$uniq_id <- paste0(selected_aso_txt_pos$GeneID, "_", selected_aso_txt_pos$ASOseq)
+
+#Removed ASOs that don't fall in the transcript or are too close to the end
+dataset <- selected_aso_txt_pos %>% dplyr::filter((length - end) > 0)
+
+newposition <- dataset %>% mutate(foldstart = start - 20, foldend = end + 20, location = (length - end)/length*100) %>% dplyr::filter((length - foldend) > 0)
+newposition %>% ggplot(aes(x = transcript_id, y = location)) + geom_point(size = 0.5) + geom_boxplot() +
+  theme_bw() + 
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) +
+  ylab("Remaining nts") + xlab("Transcript") + ggtitle("Distribution of ASOs across transcripts")
+
+fulldataset <- newposition %>% filter(GeneID != "NSMAF") %>% select(transcript_id, start, end, uniq_id)
+#write.csv(fulldataset, file = "9-20-21_ListASOPositions", quote = FALSE, row.names = FALSE)
+
+```
+
+### External processing for RNA structure
+
+I took the transcript sequences and folded them to generate mfe and mea structures and their respective energy.
+
+```{r transcriptomic coordinates, warning = FALSE}
+
+# import energy file 
+
+base_energy <- read.delim("/Volumes/GoogleDrive/My Drive/HackathonProject/rnastructurefeatures/outputs/9-20-21_CombinedEnergies.txt", header=FALSE)
+
+names(base_energy) <- c("transcript_id", "fold", "energy", "error")
+base_energy <- base_energy %>% 
+  pivot_wider(names_from = fold, values_from = c(energy, error))
+
+base_energy %>% ggplot() + geom_point(aes(x = transcript_id, y = energy_mfe), size = 0.5, color = "red") + 
+  geom_point(aes(x = transcript_id, y = energy_prob), size = 0.5, color = "blue") + theme_bw() + 
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) +
+  ylab("energy") + xlab("Transcript") + ggtitle("Energy of the MFE (red) and MEA (blue) structures by transcript")
+
+
+base_energy %>% ggplot(aes(x = energy_mfe, y = energy_prob)) + geom_point(size = 0.5) + geom_abline(slope = 1, intercept = 0) +
+  theme_bw() + geom_smooth(method=lm) +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) +
+  ylab("probability based structure (mea energy)") + xlab("lowest energy structure (mfe energy)") + ggtitle("Similarity of MFE and MEA energies")
+
+```
+###Read in basepairing data 
+
+```{r basepairing, warning = FALSE}
+
+basepairingdata <- read.delim("/Volumes/GoogleDrive/My Drive/HackathonProject/rnastructurefeatures/outputs/9-21-21_Count.txt", sep = " ", header=FALSE)
+names(basepairingdata) <- c("ASO_id", "transcript_id", "start", "end", "lengthmeasured", "unpaired", "paired")
+basepairingdata <- basepairingdata %>% mutate(mfepercent = unpaired/lengthmeasured * 100) %>% 
+  filter(transcript_id != "ENST00000549518") %>% select(transcript_id, ASO_id, mfepercent, mfe_un = unpaired, mfe_p = paired)
+basepairingdata_mea <- read.delim("/Volumes/GoogleDrive/My Drive/HackathonProject/rnastructurefeatures/outputs/9-21-21_Count_mea.txt", sep = " ", header=FALSE)
+names(basepairingdata_mea) <- c("ASO_id", "transcript_id", "start", "end", "lengthmeasured", "unpaired", "paired")
+basepairingdata_mea <- basepairingdata_mea %>% mutate(meapercent = unpaired/lengthmeasured * 100) %>% 
+  filter(transcript_id != "ENST00000549518") %>% select(transcript_id, ASO_id, meapercent, mea_un = unpaired, mea_p = paired)
+
+basepairingdata %>% ggplot() + geom_point(aes(x = transcript_id, y = mfepercent), size = 0.5, color = "red") + 
+  theme_bw() + 
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) +
+  ylab("unpaired (percent)") + xlab("Transcript") + ggtitle("Percent of nucleotides unpaired within the ASO binding site")
+
+fullbp <- merge(basepairingdata, basepairingdata_mea, by = "ASO_id") %>% 
+  select(ASO_id, transcript_id = transcript_id.x, mfepercent, mfe_un, mfe_p, meapercent, mea_un, mea_p)
+
+fullbp %>% ggplot() + geom_point(aes(x = meapercent, y = mfepercent), size = 0.5, color = "red") + 
+  theme_bw() + 
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) +
+  ylab("unpaired (mfe)") + xlab("unpaired (mea)") + ggtitle("Similarity between the percent unpaired calculated from the MFE or MEA structures")
+
+
+```
+###Read in MFE and MEA energy data, calculate difference between original structures and ASO bound structures
+
+```{r freeenergy, warning = FALSE}
+
+originalfe <- read.delim("/Volumes/GoogleDrive/My Drive/HackathonProject/rnastructurefeatures/outputs/9-20-21_CombinedEnergies.txt", sep = "\t", header=FALSE)
+names(originalfe) <- c("transcript_id", "type", "energy", "error")
+mfe <- originalfe %>% filter(type == "mfe") %>% select(-type)
+prob <- originalfe %>% filter(type == "prob") %>% select(-type)
+
+freeenergydata <- read.delim("/Volumes/GoogleDrive/My Drive/HackathonProject/rnastructurefeatures/outputs/9-20-21_output_modifiedenergies", sep = "\t", header=FALSE)
+names(freeenergydata) <- c("transcript_id", "gene", "ASO_seq", "mfe_energy", "mfe_error")
+freeenergydata$ASO_id = paste0(freeenergydata$gene,"_",freeenergydata$ASO_seq)
+freeenergydata <- freeenergydata %>% select(ASO_id, transcript_id, mfe_energy)
+
+freeenergydata_mea <- read.delim("/Volumes/GoogleDrive/My Drive/HackathonProject/rnastructurefeatures/outputs/9-20-21_output_mea_modifiedenergies", sep = "\t", header=FALSE)
+names(freeenergydata_mea) <- c("transcript_id", "gene", "ASO_seq", "prob_energy", "prob_error")
+freeenergydata_mea$ASO_id = paste0(freeenergydata_mea$gene,"_",freeenergydata_mea$ASO_seq)
+freeenergydata_mea <- freeenergydata_mea %>% select(ASO_id, transcript_id, prob_energy)
+
+
+fullmfe <- merge(freeenergydata, mfe, by = "transcript_id")
+fullmfe <- fullmfe %>% mutate(mfedifference = energy - as.numeric(mfe_energy))
+fullprob <- merge(freeenergydata_mea, prob, by = "transcript_id")
+fullprob <- fullprob %>% mutate(probdifference = energy - as.numeric(prob_energy)) 
+full <- merge(fullmfe, fullprob, by = "ASO_id") %>% 
+  select(ASO_id, transcript_id = transcript_id.x, mfedifference, probdifference)
+
+fullmfe %>% ggplot() + 
+  geom_point(aes(x = transcript_id, y = as.numeric(mfe_energy)), size = 0.5, color = "red") + 
+  geom_point(aes(x = transcript_id, y = as.numeric(energy)), size = 0.5, color = "blue") + 
+  theme_bw() + 
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) +
+  ylab("free energy") + xlab("Transcript") + ggtitle("Original MFE structure energy (blue) and the new structure with the ASO binding sites unpaired (red)")
+
+fullprob %>% ggplot() + 
+  geom_point(aes(x = transcript_id, y = as.numeric(prob_energy)), size = 0.5, color = "red") + 
+  geom_point(aes(x = transcript_id, y = as.numeric(energy)), size = 0.5, color = "blue") + 
+  theme_bw() + 
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) +
+  ylab("free energy") + xlab("Transcript") + ggtitle("Original MEA structure energy (blue) and the new structure with the ASO binding sites unpaired (red)")
+
+full %>% ggplot() + 
+  geom_point(aes(x = probdifference, y = as.numeric(mfedifference)), size = 0.5, color = "red") + 
+  theme_bw() + 
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) +
+  ylab("mfe (difference in free energy)") + xlab("mea (difference in free energy)") + ggtitle("Difference between the change in free energy for each ASO in the MFE and MEA structures")
+
+
+
+```
+
+### Combine and compare the percent unpaired and energy data sets, output suitable file
+
+```{r making data files, warning = FALSE}
+
+BPandEnergy <- merge(full, fullbp, by = "ASO_id")
+
+BPandEnergy %>% ggplot() + 
+  geom_point(aes(x = mfedifference, y = mfepercent), size = 0.5, color = "red") + 
+  theme_bw() + 
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) +
+  ylab("mfe - percent bp") + xlab("mfe - free energy") + ggtitle("Similarity between the percent unpaired from the mfe structure and the mfe energy")
+
+BPandEnergy %>% ggplot() + 
+  geom_point(aes(x = probdifference, y = meapercent), size = 0.5, color = "red") + 
+  theme_bw() + 
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) +
+  ylab("mea - percent bp") + xlab("mea -free energy") + ggtitle("Similarity between the percent unpaired from the mea structure and the mea energy")
+
+
+input <- newposition %>% filter(GeneID != "NSMAF") %>% filter(GeneID != "PIK3CD") 
+Combo <- merge(BPandEnergy, input, by.x = "ASO_id", by.y = "uniq_id")
+
+Combo %>% ggplot() + 
+  geom_point(aes(x = mfedifference, y = ASOeffective), size = 0.5, color = "red") + 
+  theme_bw() + 
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) +
+  ylab("ASO effectiveness") + xlab("mfe (difference in free energy)") + ggtitle("Comparing ASO effectiveness with difference in MFE energy")
+Combo %>% ggplot() + 
+  geom_point(aes(x = probdifference, y = ASOeffective), size = 0.5, color = "red") + 
+  theme_bw() + 
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) +
+  ylab("ASO effectiveness") + xlab("mea (difference in free energy)") + ggtitle("Comparing ASO effectiveness with difference in MEA energy")
+Combo %>% ggplot() + 
+  geom_point(aes(x = mfepercent, y = ASOeffective), size = 0.5, color = "red") + 
+  theme_bw() + 
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) +
+  ylab("ASO effectiveness") + xlab("unpaired in mfe (percent) ") + ggtitle("Comparing ASO effectiveness with pairing")
+Combo %>% ggplot() + 
+  geom_point(aes(x = transcript_id, y = ASOeffective), size = 0.5, color = "red") + 
+  theme_bw() + 
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) +
+  ylab("ASO effectiveness") + xlab("transcript ID") + ggtitle("Final set of ASOs")
+
+ML_data <- Combo %>% select(ASO_id, transcript_id = transcript_id.x, ASOseq, mfedifference, probdifference, mfepercent, meapercent, location, ASOeffective) %>% na.omit()
+
+length(unique(ML_data$ASOseq))
+n_occur <- data.frame(table(ML_data$ASOseq))
+
+#write.csv(ML_data, file = "9-20-21_cleandata.csv", sep = ",", quote = FALSE, row.names = FALSE)
+
+```
+
+### Incorporate RBP binding site data based off earlier dataset (makes the assumption that these are mapped correctly)
+
+```{r read in RBP data from earlier, warning=FALSE}
+earlierdata <- read.delim("/Volumes/GoogleDrive/My Drive/HackathonProject/rnastructurefeatures/openASO_gr_All+RBP+UTR_clean.tsv") %>% select(chrom, chromStart, chromEnd, ASOseq, GeneID, transcript_id, DoesItContainRBPSite, NumberOfRBPsites, is_across_intron)
+
+#lengthFivePrimeBind, threePrimeUtrBind, lengthThreePrimeBind, fivePrimeUtrBind
+
+earlierdata$ASO_id <- paste0(earlierdata$GeneID, "_", earlierdata$ASOseq) 
+earlierdata <- earlierdata %>% select(-GeneID, -ASOseq)
+
+WithRBP <- merge(ML_data, earlierdata, by = "ASO_id") %>% na.omit() %>% mutate(transcript_id = transcript_id.x) %>% select(-transcript_id.x, -transcript_id.y)
+
+length(unique(WithRBP$ASOseq))
+n_occur <- data.frame(table(WithRBP$ASOseq))
+
+WithRBP %>% ggplot() + 
+  geom_point(aes(x = mfedifference, y = NumberOfRBPsites), size = 0.5, color = "red") + 
+  theme_bw() + 
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) +
+  ylab("") + xlab("") + ggtitle("")
+
+#write.csv(WithRBP, file = "9-20-21_cleandata_RBPsites.csv", sep = ",", quote = FALSE, row.names = FALSE)
+
+```
+
+Decided not to use the full file as it is too messy - looks like multiple chromosome locations
+
+messydata <- read.delim("/Volumes/GoogleDrive/My Drive/HackathonProject/rnastructurefeatures/openASO_gr_All+RBP+UTR+MFE+BpProbs+PhyloP.tsv") %>% select(chrom, chromStart, chromEnd, ASOseq, GeneID, transcript_id, DoesItContainRBPSite, NumberOfRBPsites, MFE1, MFE2, MFE3, MFE4, MFE5, MFE6, MFE7, MFE8, MFE9, MFE10, MFE11, MFE12, MFE13, MFE14, MFE15, MFE16, MFE17, MFE18, MFE19, MFE20, MFE21, BpProbs1, BpProbs2, BpProbs3, BpProbs4, BpProbs5, BpProbs6, BpProbs7, BpProbs8, BpProbs9, BpProbs10, BpProbs11, BpProbs12, BpProbs13, BpProbs14, BpProbs15, BpProbs16, BpProbs17, BpProbs18, BpProbs19, BpProbs20, BpProbs21, averageConservationScore, countConserveAboveZero) %>% filter(GeneID != "NSMAF") %>% filter(GeneID != "PIK3CD") %>% unique()
+messydata$ASO_id <- paste0(messydata$GeneID, "_", messydata$ASOseq) 
+messydata <- messydata %>% select(-GeneID, -ASOseq)
+WithRBP2 <- merge(ML_data, messydata, by = c("ASO_id", "transcript_id")) %>% na.omit() %>% unique()
+n_occur2 <- data.frame(table(WithRBP2$ASOseq.x))
+
+
+
+
+
+```{r}
+sessionInfo()
+
+```
+
