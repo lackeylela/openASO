@@ -1,7 +1,7 @@
 ---
-title: "20201214_openASO_position"
+title: "20210921_openASO_position"
 author: "Kim Wellman, Lela Lackey"
-date: "12/14/2020"
+date: "09/30/2021"
 output:
   html_document: 
     code_folding: hide
@@ -90,8 +90,6 @@ db <- EnsDb(dbfile)
 # latest version of X.toGenome tries to replace id with a group identifier. Defaults to using 'NAMES' transcript id which is not unique enough to join back at the very end.
 
 gr <- transcriptToGenome(ir, db)
-# gr <- transcriptToGenome(ir, db, id = mcols(ir)[,1])
-# gr <- transcriptToGenome(ir, db, id = mcols(ir)$aso_grp)
   
 ```
 
